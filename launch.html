@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Field to FHIR | EMS Outcome Feedback</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+  <script src="https://cdn.jsdelivr.net/npm/fhirclient@3.0.1/bundle/fhir-client.js"></script>
+  <script src="./js/smart-config.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; color: #1f2937; background: #f1f5f9; }
+    .hero { background: #0f3d63; color: #fff; padding: 1.5rem 1.25rem; }
+    .hero .in { max-width: 1140px; margin: 0 auto; display: flex; align-items: center; gap: 1.4rem; }
+    @media (max-width: 700px) { .hero .in { flex-direction: column; text-align: center; } }
+    .hero img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 24px rgba(0,0,0,.25); flex: none; }
+    .hero h1 { font-size: 2.3rem; margin: 0 0 .25rem; letter-spacing: .01em; }
+    .hero .tagline { font-size: 1.1rem; opacity: .9; margin: 0; }
+    .wrap { max-width: 1140px; margin: 1.2rem auto 0; padding: 0 1.25rem 1rem; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.2rem 1.4rem; }
+    .purpose { font-size: 1.15rem; line-height: 1.6; margin: 0; }
+    .purpose b { color: #0f3d63; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+    @media (max-width: 700px) { .steps { grid-template-columns: 1fr; } .hero h1 { font-size: 1.9rem; } }
+    .step { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; }
+    .step .num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: .9rem; }
+    .step h3 { font-size: 1rem; margin: .6rem 0 .3rem; }
+    .step p { font-size: .95rem; color: #374151; margin: 0; line-height: 1.5; }
+    .s1 { border-top: 4px solid #ea580c; } .s1 .num { background: #ea580c; }
+    .s2 { border-top: 4px solid #2563eb; } .s2 .num { background: #2563eb; }
+    .s3 { border-top: 4px solid #16a34a; } .s3 .num { background: #16a34a; }
+    .cta { text-align: center; margin-top: 1.2rem; }
+    .cta p { margin: .45rem 0; }
+    #signin { font-size: 1.1rem; padding: .85rem 2rem; border-radius: 10px; border: 0; background: #2563eb; color: #fff; cursor: pointer; font-weight: 600; }
+    #signin:hover { background: #1d4ed8; }
+    #signin:disabled { opacity: .6; cursor: wait; }
+    .note { font-size: .85rem; color: #6b7280; margin-top: .6rem; }
+    #error { color: #b91c1c; }
+    .stds { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: .6rem; }
+    .std { font-size: .75rem; padding: .2rem .6rem; border-radius: 6px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    footer { text-align: center; font-size: .8rem; color: #6b7280; padding: .8rem 1rem 1.5rem; }
+    footer a { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="in">
+    <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
+    <div><h1>Field to FHIR</h1>
+    <p class="tagline">Closing the loop between EMS field impressions and hospital dispositions</p></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="card">
+      <p class="purpose"><b>Field to FHIR</b> helps <b>EMS professionals</b> <b>see what happened to their patients after hospital handoff</b> by bringing the EMS field impression, crew and vital signs together with the hospital's diagnosis and outcome in one view.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step s1"><p>The crew records a field impression and vital signs on scene. Each crew member's licensure level is part of the record.</p></div>
+      <div class="step s2"><p>The hospital visit links back to the EMS impression. The hospital records the final diagnosis, vital signs and discharge outcome.</p></div>
+      <div class="step s3"><p>Field to FHIR shows both side by side, so the crew can see whether their impression matched the hospital's diagnosis.</p></div>
+    </div>
+
+    <div class="cta">
+      <button id="signin" type="button">Sign in</button>
+      <p class="note" id="status" role="status">EMS providers sign in through SMART App Launch 2.2.0. This door only reads data. It never changes it.</p>
+      <p id="error" role="alert" hidden></p>
+      <p><a href="tour.html" style="color:#2563eb;font-weight:600">Take a tour: see what the app does before you sign in &rarr;</a></p>
+    </div>
+
+    <div class="stds">
+      <span class="std">FHIR 4.0.1</span>
+      <span class="std">US Core 6.1.0</span>
+      <span class="std">SMART App Launch 2.2.0</span>
+      <span class="std">Read-only</span>
+    </div>
+  </div>
+
+  <footer>
+    Fictional test data for the HL7 Break the Code program.
+    <br><a href="admin-load.html">Admin: load demo data</a> (run before each demo; the sandbox resets nightly)
+  </footer>
+
+  <script>
+    "use strict";
+    // Dashboard door: SMART App Launch 2.2.0, standalone provider launch, read and search only.
+    const CLIENT_ID = "my_web_app";
+    const REDIRECT_URI = new URL("index.html", window.location.href).href;
+    const SCOPES = [
+      "openid",
+      "fhirUser",
+      "user/Organization.rs",
+      "user/Practitioner.rs",
+      "user/PractitionerRole.rs",
+      "user/Patient.rs",
+      "user/Encounter.rs",
+      "user/Condition.rs",
+      "user/Observation.rs"
+    ].join(" ");
+
+    // Only these sign-in servers are trusted. The fhirclient library would otherwise accept any
+    // server named in the address bar (?iss=...), so the app checks the address first.
+    //  1. The SMART Health IT sandbox (normal use).
+    //  2. Inferno's simulated SMART server, used only to test this app with the
+    //     SMART App Launch STU2.2 Client test suite (launch.html?iss=<that address>).
+    const TRUSTED_ISSUERS = [
+      window.EMS_SMART_ISSUER,
+      "https://inferno.healthit.gov/suites/custom/smart_client_stu2_2/fhir"
+    ];
+    function chooseIssuer() {
+      const q = new URLSearchParams(window.location.search);
+      for (const name of ["launch", "fhirServiceUrl", "clientId", "patientId"]) {
+        if (q.has(name)) throw new Error("This page does not accept the \"" + name + "\" setting in its address.");
+      }
+      const asked = q.get("iss");
+      if (asked === null) return window.EMS_SMART_ISSUER;
+      if (TRUSTED_ISSUERS.includes(asked)) return asked;
+      throw new Error("This sign-in server is not on the app's trusted list: " + asked);
+    }
+
+    function start() {
+      const btn = document.getElementById("signin");
+      const err = document.getElementById("error");
+      err.hidden = true;
+      let issuer;
+      try { issuer = chooseIssuer(); }
+      catch (e) { err.hidden = false; err.textContent = "Sign-in stopped: " + e.message; return; }
+      btn.disabled = true;
+      btn.textContent = "Opening sign-in…";
+      FHIR.oauth2.authorize({
+        clientId: CLIENT_ID,
+        scope: SCOPES,
+        redirectUri: REDIRECT_URI,
+        iss: issuer,
+        pkceMode: "required"
+      }).catch(e => {
+        btn.disabled = false;
+        btn.textContent = "Sign in";
+        err.hidden = false;
+        err.textContent = "Sign-in could not start: " + (e && e.message ? e.message : String(e));
+      });
+    }
+    document.getElementById("signin").addEventListener("click", start);
+  </script>
+</body>
+</html>

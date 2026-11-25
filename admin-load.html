@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field to FHIR | Admin: Load Demo Data</title>
+<script src="https://cdn.jsdelivr.net/npm/fhirclient@3.0.1/bundle/fhir-client.js"></script>
+<script src="./js/smart-config.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
+  h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+  .muted { color: #6b7280; font-size: .9rem; }
+  button { font-size: 1rem; padding: .6rem 1.2rem; border-radius: 8px; border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0; }
+  ul { list-style: none; padding-left: 0; }
+  li { padding: .2rem 0; }
+  .ok::before { content: "\2714  "; color: #15803d; }
+  .bad::before { content: "\2716  "; color: #b91c1c; }
+  .bad { color: #b91c1c; }
+  #log { font-family: ui-monospace, monospace; font-size: .8rem; white-space: pre-wrap; max-height: 220px; overflow: auto; background: #f9fafb; padding: .5rem; border-radius: 6px; }
+</style>
+</head>
+<body>
+<h1>Load demo data</h1>
+<p class="muted">Admin door. Loads the synthetic EMS cases into the SMART sandbox, then checks every record and link.
+The sandbox resets every night, so run this before each demo. Running it twice does not create duplicates.</p>
+<p class="muted">Validation gate: before anything is created, every record is sent to the official HL7 FHIR Validator
+(FHIR 4.0.1 + US Core 6.1.0). If the validator reports any error, or cannot be reached, nothing is loaded.
+Synthetic data only: never send real patient data to the public validator.</p>
+
+<div class="card">
+  <p id="who">Not signed in.</p>
+  <button id="signin">Sign in (admin)</button>
+  <button id="load" disabled>Load demo data</button>
+</div>
+
+<div class="card">
+  <strong>Validation</strong>
+  <ul id="validation"><li class="muted">Runs automatically when you click Load demo data.</li></ul>
+  <details id="vdetails" hidden><summary>Show every warning</summary><div id="vlist" style="font-size:.85rem"></div></details>
+</div>
+
+<div class="card">
+  <strong>Results</strong>
+  <ul id="results"><li class="muted">Nothing run yet.</li></ul>
+</div>
+
+<div class="card">
+  <strong>Details</strong>
+  <div id="log"></div>
+</div>
+
+<script>
+"use strict";
+
+const CLIENT_ID = "my_web_app";
+const REDIRECT_URI = new URL("admin-load.html", window.location.href).href.split("?")[0];
+const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/ems-demo-v2";
+const TYPES = ["Organization", "Practitioner", "PractitionerRole", "Patient", "Encounter", "Condition", "Observation", "Procedure"];
+const SCOPES = ["openid", "fhirUser"].concat(TYPES.map(t => "user/" + t + ".crs")).join(" ");
+
+const $ = id => document.getElementById(id);
+const logLine = msg => { $("log").textContent += msg + "\n"; $("log").scrollTop = 1e9; };
+const results = [];
+function result(ok, text) {
+  if (!results.length) $("results").innerHTML = "";
+  results.push(ok);
+  const li = document.createElement("li");
+  li.className = ok ? "ok" : "bad";
+  li.textContent = text;
+  $("results").appendChild(li);
+}
+
+let client = null;
+
+$("signin").addEventListener("click", () => {
+  // The admin page signs in only to the sandbox. The fhirclient library would otherwise accept
+  // a different server or client named in the address bar, so refuse any such setting.
+  const q = new URLSearchParams(window.location.search);
+  const bad = ["iss", "launch", "fhirServiceUrl", "clientId", "patientId"].filter(n => q.has(n));
+  if (bad.length) { $("who").textContent = "Sign-in stopped: this page does not accept " + bad.join(", ") + " in its address."; return; }
+  FHIR.oauth2.authorize({
+    clientId: CLIENT_ID, scope: SCOPES, redirectUri: REDIRECT_URI,
+    iss: window.EMS_SMART_ISSUER, pkceMode: "required"
+  }).catch(e => { $("who").textContent = "Sign-in could not start: " + e.message; });
+});
+
+const params = new URLSearchParams(window.location.search);
+if (params.has("code") || params.has("state")) {
+  FHIR.oauth2.ready().then(async c => {
+    client = c;
+    let name = "signed in";
+    try {
+      const u = await c.user.read();
+      const n = (u.name && u.name[0]) || {};
+      name = [(n.given || []).join(" "), n.family].filter(Boolean).join(" ") || u.id;
+    } catch (e) { /* identity is optional for loading */ }
+    $("who").textContent = "Signed in as " + name + ". Granted permissions: " + (c.state.tokenResponse.scope || "not reported");
+    $("load").disabled = false;
+    $("signin").disabled = true;
+  }).catch(e => { $("who").textContent = "Sign-in failed: " + e.message; });
+}
+
+// The sandbox briefly caches search results, so every search asks for a fresh answer.
+async function findByIdentifier(type, value) {
+  const b = await client.request({
+    url: type + "?identifier=" + encodeURIComponent(ID_SYS + "|" + value) + "&_count=5",
+    headers: { "Cache-Control": "no-cache" }
+  });
+  return (b.entry || []).map(e => e.resource);
+}
+
+function swapRefs(obj, map) {
+  if (Array.isArray(obj)) return obj.map(v => swapRefs(v, map));
+  if (obj && typeof obj === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      out[k] = (k === "reference" && typeof v === "string" && map[v]) ? map[v] : swapRefs(v, map);
+    }
+    return out;
+  }
+  return obj;
+}
+
+// Validation gate: send the whole data file to the official HL7 FHIR Validator first. Fail closed.
+const VALIDATOR = "https://validator.fhir.org/validate";
+async function validateBundle(text) {
+  const v = $("validation");
+  v.innerHTML = "<li class='muted'>Sending all records to the official HL7 FHIR Validator (FHIR 4.0.1 + US Core 6.1.0). This can take a minute...</li>";
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 240000);
+  let j;
+  try {
+    const r = await fetch(VALIDATOR, {
+      method: "POST", signal: ctrl.signal,
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ cliContext: { sv: "4.0.1", igs: ["hl7.fhir.us.core#6.1.0"] },
+        filesToValidate: [{ fileName: "ems-demo-bundle.json", fileContent: text, fileType: "json" }] })
+    });
+    if (!r.ok) throw new Error("validator answered HTTP " + r.status);
+    j = await r.json();
+  } catch (e) {
+    v.innerHTML = "";
+    const li = document.createElement("li"); li.className = "bad";
+    li.textContent = "Validator could not be reached (" + (e.name === "AbortError" ? "timed out" : e.message) + "). Nothing was loaded. Try again in a few minutes.";
+    v.appendChild(li);
+    return false;
+  } finally { clearTimeout(timer); }
+  const issues = (j.outcomes || []).flatMap(o => o.issues || []);
+  const errors = issues.filter(i => i.level === "ERROR" || i.level === "FATAL");
+  const warnings = issues.filter(i => i.level === "WARNING");
+  v.innerHTML = "";
+  const head = document.createElement("li");
+  head.className = errors.length ? "bad" : "ok";
+  head.textContent = "Official HL7 FHIR Validator, FHIR 4.0.1 + US Core 6.1.0: " + errors.length + " errors, " + warnings.length + " warnings" +
+    (errors.length ? ". Nothing was loaded." : ". Passed; loading may continue.");
+  v.appendChild(head);
+  for (const i of errors.slice(0, 50)) {
+    const li = document.createElement("li"); li.className = "bad";
+    li.textContent = (i.location || "") + ": " + i.message;
+    v.appendChild(li);
+  }
+  $("vlist").innerHTML = "";
+  for (const i of warnings) {
+    const d = document.createElement("div");
+    d.textContent = "Warning — " + (i.location || "") + ": " + i.message;
+    $("vlist").appendChild(d);
+  }
+  $("vdetails").hidden = !warnings.length;
+  logLine("Validator: " + errors.length + " errors, " + warnings.length + " warnings, " + issues.length + " issues in total");
+  return errors.length === 0;
+}
+
+$("load").addEventListener("click", async () => {
+  $("load").disabled = true;
+  results.length = 0;
+  $("results").innerHTML = "<li class='muted'>Waiting for validation...</li>";
+  try {
+    const text = await (await fetch("ems-demo-bundle.json", { cache: "no-store" })).text();
+    if (!(await validateBundle(text))) {
+      $("results").innerHTML = "<li class='bad'>Loading stopped: the data did not pass validation.</li>";
+      $("load").disabled = false;
+      return;
+    }
+    $("results").innerHTML = "<li class='muted'>Loading...</li>";
+    const bundle = JSON.parse(text);
+    const map = {};               // urn:uuid -> Type/id
+    const byIdent = {};           // identifier value -> saved resource
+    let created = 0, existed = 0, duplicates = 0;
+
+    for (const entry of bundle.entry) {
+      const res = swapRefs(entry.resource, map);
+      const type = res.resourceType;
+      const idv = res.identifier[0].value;
+      const found = await findByIdentifier(type, idv);
+      let saved;
+      if (found.length > 1) { duplicates++; logLine("DUPLICATE " + type + " " + idv); saved = found[0]; }
+      else if (found.length === 1) { existed++; saved = found[0]; }
+      else {
+        saved = await client.request({
+          url: type, method: "POST", body: JSON.stringify(res),
+          headers: { "Content-Type": "application/fhir+json" }
+        });
+        created++;
+        logLine("created " + type + "/" + saved.id + "  " + idv);
+      }
+      map[entry.fullUrl] = type + "/" + saved.id;
+      byIdent[idv] = saved;
+    }
+    result(duplicates === 0, `Records: ${created} created, ${existed} already there, ${duplicates} duplicates`);
+    await verify(byIdent);
+  } catch (e) {
+    result(false, "Loading stopped: " + e.message);
+    logLine(String(e.stack || e));
+  }
+  $("load").disabled = false;
+});
+
+let saved = {};
+// Read each record back by the ID the server gave it. If that ID isn't known, search by identifier.
+async function one(type, idv) {
+  if (saved[idv]) return client.request(type + "/" + saved[idv].id);
+  const r = await findByIdentifier(type, idv);
+  if (r.length !== 1) throw new Error(type + " " + idv + (r.length ? " has duplicates" : " is missing"));
+  return r[0];
+}
+const refIs = (ref, type, id) => !!ref && typeof ref.reference === "string" &&
+  (ref.reference === type + "/" + id || ref.reference.endsWith("/" + type + "/" + id));
+
+async function verify(byIdent) {
+  saved = byIdent || {};
+  for (let i = 1; i <= 11; i++) {
+    const cid = "EMS-DEMO-" + String(i).padStart(2, "0");
+    try {
+      const p = await one("Patient", cid);
+      const emsEnc = await one("Encounter", cid + "-EMS");
+      const hospEnc = await one("Encounter", cid + "-HOSP");
+      const emsDx = await one("Condition", cid + "-EMS-DX");
+      const hospDx = await one("Condition", cid + "-HOSP-DX");
+      const problems = [];
+      for (const r of [emsEnc, hospEnc, emsDx, hospDx]) if (!refIs(r.subject, "Patient", p.id)) problems.push(r.resourceType + " points to the wrong patient");
+      if (!refIs(emsDx.encounter, "Encounter", emsEnc.id)) problems.push("EMS impression not linked to the EMS call");
+      if (!refIs(hospDx.encounter, "Encounter", hospEnc.id)) problems.push("hospital diagnosis not linked to the hospital visit");
+      if (!(hospEnc.reasonReference || []).some(r => refIs(r, "Condition", emsDx.id))) problems.push("hospital visit has no link back to the EMS impression");
+      if (((emsDx.verificationStatus || {}).coding || [])[0]?.code !== "provisional") problems.push("EMS impression is not provisional");
+      if (i === 11) {
+        // Unidentified patient: the alias record must point to the identified record (Patient.link "replaced-by").
+        const idd = await one("Patient", cid + "-IDENTIFIED");
+        if (!(p.link || []).some(l => l.type === "replaced-by" && refIs(l.other, "Patient", idd.id))) problems.push("alias record not linked to the identified record");
+      }
+      const obs = await client.request("Observation?patient=" + p.id + "&_count=50");
+      const nObs = (obs.entry || []).length;
+      const name = [(p.name[0].given || []).join(" "), p.name[0].family].join(" ");
+      if (problems.length) result(false, `${name} (${cid}): ` + problems.join("; "));
+      else result(true, `${name} (${cid}): all links OK, ${nObs} observations`);
+    } catch (e) {
+      result(false, cid + ": " + e.message);
+    }
+  }
+  const allOk = results.every(Boolean);
+  result(allOk, allOk ? "Everything loaded and every link checks out." : "Some checks failed. See the red lines above.");
+}
+</script>
+</body>
+</html>

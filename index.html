@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field to FHIR | Provider Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<script src="https://cdn.jsdelivr.net/npm/fhirclient@3.0.1/bundle/fhir-client.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; color: #1f2937; background: #f1f5f9; }
+  header { background: #0f3d63; color: #fff; padding: .75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; }
+  .brand { display: flex; align-items: center; gap: .7rem; }
+  .brand img { width: 44px; height: 44px; border-radius: 10px; }
+  .brand h1 { font-size: 1.2rem; margin: 0; line-height: 1.1; }
+  .brand .tag { font-size: .78rem; opacity: .8; }
+  .chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .chip { font-size: .7rem; padding: .15rem .55rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.5); white-space: nowrap; }
+  .chip.ro { background: #dcfce7; color: #166534; border-color: #dcfce7; font-weight: 600; }
+  .right { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .who { font-size: .85rem; opacity: .95; }
+  header button { background: transparent; color: #fff; border: 1px solid #fff; border-radius: 6px; padding: .3rem .7rem; cursor: pointer; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 1rem 1.25rem; }
+  .agency { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; }
+  .agency .icon { width: 44px; height: 44px; border-radius: 10px; background: #ffedd5; color: #9a3412; display: grid; place-items: center; font-weight: 700; }
+  .agency h2 { font-size: 1.05rem; margin: 0; }
+  .stats { display: flex; gap: 1.2rem; text-align: center; }
+  .stats b { display: block; font-size: 1.3rem; color: #0f3d63; }
+  .stats span { font-size: .72rem; color: #6b7280; }
+  @media (max-width: 700px) { .agency { grid-template-columns: 1fr; } }
+  main { display: grid; grid-template-columns: 250px 1fr; gap: 1rem; margin-top: 1rem; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; }
+  .list button { display: block; width: 100%; text-align: left; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: .6rem .75rem; margin-bottom: .45rem; cursor: pointer; font-size: .95rem; }
+  .list button:hover, .list button.active { border-color: #1d4ed8; background: #eff6ff; }
+  h2 { font-size: 1.4rem; margin: 0 0 .2rem; }
+  h3 { font-size: 1rem; margin: 0 0 .5rem; }
+  h4 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; margin: 1rem 0 .4rem; }
+  .muted { color: #6b7280; font-size: .85rem; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+  @media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+  .ems { border-top: 4px solid #c2410c; }
+  .hosp { border-top: 4px solid #1d4ed8; }
+  .dx { font-size: 1.15rem; font-weight: 600; margin: .2rem 0; }
+  .pill { display: inline-block; font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; background: #f3f4f6; margin: 0 .3rem .2rem 0; }
+  .pill.prov { background: #ffedd5; color: #9a3412; }
+  .pill.conf { background: #dbeafe; color: #1e40af; }
+  .pill.lvl { background: #ede9fe; color: #5b21b6; font-weight: 600; }
+  dl { display: grid; grid-template-columns: 105px 1fr; gap: .25rem .5rem; font-size: .88rem; margin: .7rem 0 0; }
+  dt { color: #6b7280; }
+  dd { margin: 0; }
+  .member { display: flex; gap: .6rem; align-items: flex-start; padding: .5rem 0; border-top: 1px solid #f1f5f9; }
+  .member:first-of-type { border-top: 0; }
+  .avatar { flex: none; width: 44px; height: 44px; }
+  .list button { display: flex; align-items: center; gap: .55rem; }
+  .list .avatar { width: 36px; height: 36px; }
+  .list button[hidden], .hosps button[hidden] { display: none; }
+  .hosps button.panel { text-align: left; font: inherit; color: inherit; cursor: pointer; width: 100%; }
+  .hosps button.panel:hover { background: #f8fbff; }
+  .hosps button.panel.active { outline: 3px solid #2563eb; background: #eff6ff; }
+  .filter { font-size: .8rem; color: #1e40af; margin: -.2rem 0 .6rem; }
+  .filter a { color: #2563eb; cursor: pointer; text-decoration: underline; margin-left: .3rem; }
+  .partner { font-size: .8rem; color: #374151; margin-top: .15rem; }
+  .member .nm { font-weight: 600; font-size: .92rem; }
+  .member .sub { font-size: .75rem; color: #6b7280; }
+  .org { font-size: .88rem; line-height: 1.45; }
+  .org b { font-size: .95rem; }
+  .banner { margin-top: 1rem; padding: .7rem 1rem; border-radius: 8px; font-size: .92rem; }
+  .banner.ok { background: #dcfce7; color: #166534; }
+  .banner.warn { background: #fef3c7; color: #92400e; }
+  .banner.bad { background: #fee2e2; color: #991b1b; }
+  .banner.info { background: #dbeafe; color: #1e3a8a; }
+  .banner small { display: block; opacity: .8; margin-top: .2rem; }
+  .restricted { margin-top: .6rem; padding: .6rem .7rem; border: 1px dashed #b91c1c; border-radius: 8px; background: #fff7f7; font-size: .85rem; color: #7f1d1d; }
+  .tagbox { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; }
+  .tagbox .qr svg { width: 110px; height: 110px; display: block; }
+  .alias { display: inline-block; font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; background: #fef3c7; color: #92400e; margin-left: .4rem; vertical-align: middle; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; margin-top: .5rem; }
+  th, td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid #e5e7eb; }
+  th { color: #6b7280; font-weight: 500; }
+  .kicker { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #9a3412; font-weight: 700; }
+  .std { display: inline-block; font-size: .68rem; padding: .1rem .45rem; border-radius: 4px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; margin: .25rem .25rem 0 0; }
+  .std.smart { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
+  .std.fhir { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
+  .hosps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+  @media (max-width: 820px) { .hosps { grid-template-columns: 1fr; } }
+  .hosps .panel { border-top: 4px solid #1d4ed8; }
+  .hosps .kicker { color: #1e40af; }
+  footer { text-align: center; padding: 1rem; font-size: .78rem; color: #6b7280; }
+  footer a { color: #1d4ed8; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
+    <div>
+      <h1>Field to FHIR</h1>
+      <div class="tag">Field Impression &rarr; Hospital Disposition</div>
+    </div>
+  </div>
+  <div class="chips">
+    <span class="chip">SMART on FHIR 2.2</span>
+    <span class="chip">FHIR 4.0.1</span>
+    <span class="chip">US Core 6.1.0</span>
+    <span class="chip ro">Read-only</span>
+  </div>
+  <div class="right"><span class="who" id="who">Signing in…</span> <button id="signout" type="button">Sign out</button></div>
+</header>
+
+<div class="wrap">
+  <section class="panel agency" id="agency">
+    <div class="icon">EMS</div>
+    <div><p class="muted">Loading agency…</p></div>
+    <div></div>
+  </section>
+
+  <section class="hosps" id="hospitals"></section>
+
+  <main>
+    <section class="panel">
+      <h3>My EMS patients</h3>
+      <div class="filter" id="filter" hidden></div>
+      <div class="list" id="list"><p class="muted">Loading…</p></div>
+    </section>
+    <section id="detail"></section>
+  </main>
+</div>
+
+<footer>
+  Fictional test data · FHIR 4.0.1 · US Core 6.1.0 · SMART App Launch 2.2.0
+  <br><span id="scopes"></span>
+  <br><a href="admin-load.html">Admin: load demo data</a> (run before each demo; the sandbox resets nightly)
+</footer>
+
+<script>
+"use strict";
+const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/ems-demo-v2";
+const CASES = Array.from({ length: 11 }, (_, i) => "EMS-DEMO-" + String(i + 1).padStart(2, "0"));
+const AGENCY_TAG = "EMS-DEMO-AGENCY-001";
+const HOSPITAL_TAGS = ["EMS-DEMO-HOSP-001", "EMS-DEMO-HOSP-002", "EMS-DEMO-HOSP-003"];
+const TRIAGE_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag";
+const TX = "https://tx.fhir.org/r4";
+const $ = id => document.getElementById(id);
+let client = null;
+const cache = new Map();
+let patientCount = null;
+let hospitalList = [];
+let hospitalFilter = null;   // Organization id of the hospital being viewed, or null for all
+let patientRows = [];        // { p, tag, hospId, button }
+let me = null;               // the signed-in user's Practitioner record
+let isAgencyEmt = false;     // only this agency's EMS providers see any patients
+
+// Not coming back from sign-in: go to the sign-in page.
+const qs = new URLSearchParams(location.search);
+if (!qs.has("code") && !qs.has("state") && !sessionStorage.getItem("SMART_KEY")) {
+  location.replace(new URL("launch.html", location.href).href);
+}
+
+$("signout").addEventListener("click", () => {
+  sessionStorage.clear();
+  location.replace(new URL("launch.html", location.href).href);
+});
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const nameOf = p => { const n = (p && p.name || [])[0] || {}; return [(n.given || []).join(" "), n.family].filter(Boolean).join(" "); };
+const isAlias = p => ((p && p.name || [])[0] || {}).use === "temp";
+const tagValue = (r, system) => (((r && r.identifier) || []).find(i => i.system === system) || {}).value || null;
+const initials = p => { const n = (p && p.name || [])[0] || {}; return ((n.given || [""])[0][0] || "") + ((n.family || "")[0] || ""); };
+const when = d => d ? new Date(d).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
+const born = d => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—";
+const ccText = cc => cc ? (cc.text || ((cc.coding || [])[0] || {}).display || "") : "";
+const code0 = cc => ((cc && cc.coding) || [])[0] || {};
+const refIs = (ref, type, id) => !!ref && typeof ref.reference === "string" &&
+  (ref.reference === type + "/" + id || ref.reference.endsWith("/" + type + "/" + id));
+const refId = (ref, type) => { const m = ref && typeof ref.reference === "string" && ref.reference.match(new RegExp("(?:^|/)" + type + "/([^/]+)$")); return m ? m[1] : null; };
+const address = o => { const a = (o.address || [])[0]; return a ? [(a.line || []).join(", "), a.city, [a.state, a.postalCode].filter(Boolean).join(" ")].filter(Boolean).join(", ") : ""; };
+const clean = s => String(s == null ? "" : s).replace(/\s*\(Synthetic\)\s*/gi, " ").trim();
+// Show which US Core 6.1.0 profile a record claims (read from the record itself).
+const PROFILE_NAMES = {
+  "us-core-organization": "US Core Organization", "us-core-patient": "US Core Patient",
+  "us-core-practitioner": "US Core Practitioner", "us-core-practitionerrole": "US Core PractitionerRole",
+  "us-core-encounter": "US Core Encounter", "us-core-blood-pressure": "US Core Blood Pressure",
+  "us-core-heart-rate": "US Core Heart Rate", "us-core-respiratory-rate": "US Core Respiratory Rate",
+  "us-core-pulse-oximetry": "US Core Pulse Oximetry", "us-core-body-temperature": "US Core Body Temperature",
+  "us-core-observation-lab": "US Core Laboratory Result", "us-core-condition-encounter-diagnosis": "US Core Condition (Encounter Diagnosis)"
+};
+const profileTag = r => {
+  const p = ((r && r.meta && r.meta.profile) || []).find(x => x.includes("/us/core/"));
+  if (!p) return "";
+  const [url, ver] = p.split("|");
+  const key = url.split("/").pop();
+  return `<span class="std" title="${esc(p)}">${esc(PROFILE_NAMES[key] || key)} ${esc(ver || "")}</span>`;
+};
+const readTag = type => `<span class="std smart" title="SMART App Launch 2.2.0 granular scope">SMART 2.2.0 · user/${esc(type)}.rs</span>`;
+const fhirTag = '<span class="std fhir">FHIR 4.0.1</span>';
+// Easter-egg headings, matched by each organization's project tag.
+const HEADINGS = {
+  "EMS-DEMO-AGENCY-001": "EMS Organization FHIR 4.0.1",
+  "EMS-DEMO-HOSP-001": "SMART 2.2.0 Hospital",
+  "EMS-DEMO-HOSP-002": "US Core 6.1.0 Hospital",
+  "EMS-DEMO-HOSP-003": "HAPI SWAGGER Hospital"
+};
+const tagOf = r => ((r && r.identifier) || []).find(i => i.system === ID_SYS) || {};
+const heading = o => HEADINGS[tagOf(o).value] || clean(o && o.name);
+// Loop-logo bullet: the app's loop ring with initials inside.
+const loopAvatar = (letters, color) => `<svg class="avatar" viewBox="0 0 40 40" aria-hidden="true">
+  <path d="M33 26a14 14 0 1 1-1-14" fill="none" stroke="${color || "#2563eb"}" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M27 11l5 1.5 1.5-5" fill="none" stroke="${color || "#2563eb"}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="19.5" y="24.5" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#ea580c">${esc(letters)}</text></svg>`;
+// A crew member's title, from their NUCC licensure level.
+const TITLES = { "146L00000X": "Paramedic", "146M00000X": "AEMT", "146N00000X": "EMT" };
+const titleOf = role => TITLES[code0(((role && role.specialty) || [])[0]).code] || "";
+const phone = o => ((o.telecom || []).find(t => t.system === "phone") || {}).value || "";
+
+// Find one record by its project tag (business identifier), never by a hard-coded server ID.
+async function byTag(type, value) {
+  const b = await client.request({
+    url: type + "?identifier=" + encodeURIComponent(ID_SYS + "|" + value) + "&_count=5",
+    headers: { "Cache-Control": "no-cache" }
+  });
+  const found = (b.entry || []).map(e => e.resource);
+  if (found.length > 1) throw new Error(type + " " + value + " has duplicates");
+  return found[0] || null;
+}
+// Read a record a reference points to (saved, so each one is fetched once).
+async function readRef(type, ref) {
+  const id = refId(ref, type);
+  if (!id) return null;
+  const key = type + "/" + id;
+  if (!cache.has(key)) cache.set(key, client.request(key).catch(() => null));
+  return cache.get(key);
+}
+// A crew member's licensure level: their PractitionerRole (NUCC specialty) at the agency.
+async function roleFor(practitionerId, agencyId) {
+  const key = "role:" + practitionerId;
+  if (!cache.has(key)) cache.set(key, client.request({
+    url: "PractitionerRole?practitioner=" + encodeURIComponent(practitionerId) + "&_count=5",
+    headers: { "Cache-Control": "no-cache" }
+  }).then(b => (b.entry || []).map(e => e.resource)
+      .find(r => refIs(r.practitioner, "Practitioner", practitionerId) && (!agencyId || refIs(r.organization, "Organization", agencyId))) || null)
+    .catch(() => null));
+  return cache.get(key);
+}
+
+FHIR.oauth2.ready().then(async c => {
+  client = c;
+  try {
+    const u = await c.user.read();
+    me = u;
+    if (tagValue(u, ID_SYS)) {
+      // One of this agency's EMS providers: show their title from their licensure level.
+      const role = await roleFor(u.id, null);
+      $("who").textContent = "Signed in as " + ((titleOf(role) ? titleOf(role) + " " : "") + nameOf(u));
+      isAgencyEmt = true;
+    } else {
+      $("who").textContent = "Signed in as " + nameOf(u) + " (sandbox practitioner)";
+    }
+  } catch (e) { $("who").textContent = "Signed in"; }
+  $("scopes").textContent = "Permissions granted: " + ((c.state.tokenResponse || {}).scope || "not reported");
+  loadAgency();
+  loadList();
+}).catch(e => {
+  $("who").textContent = "Not signed in";
+  $("list").innerHTML = '<p class="muted">Sign-in failed: ' + esc(e.message) + '. <a href="launch.html">Sign in again</a>.</p>';
+});
+
+async function loadAgency() {
+  try {
+    const [agency, ...hospitals] = await Promise.all([byTag("Organization", AGENCY_TAG), ...HOSPITAL_TAGS.map(t => byTag("Organization", t))]);
+    if (!agency) { $("agency").children[1].innerHTML = '<p class="muted">Agency not found: run Admin: load demo data.</p>'; return; }
+    cache.set("Organization/" + agency.id, Promise.resolve(agency));
+    hospitals.filter(Boolean).forEach(h => cache.set("Organization/" + h.id, Promise.resolve(h)));
+    const type = code0((agency.type || [])[0]);
+    $("agency").children[1].innerHTML = `
+      <h2>${esc(heading(agency))}</h2>
+      <div class="muted">${esc(clean(agency.name))} · ${esc(type.display || "")}${type.code ? " · NUCC " + esc(type.code) : ""} · ${esc(address(agency))}${phone(agency) ? " · " + esc(phone(agency)) : ""}</div>
+      <div>${fhirTag}${profileTag(agency)}${readTag("Organization")}</div>`;
+    hospitalList = hospitals.filter(Boolean);
+    $("hospitals").innerHTML = hospitalList.map(h => `
+      <button type="button" class="panel" data-hosp="${esc(h.id)}" title="Show only patients brought to this hospital">
+        <div class="kicker">Receiving hospital</div>
+        <h3 style="margin:.2rem 0">${esc(heading(h))}</h3>
+        <div class="muted">${esc(clean(h.name))}<br>${esc(address(h))}${phone(h) ? "<br>" + esc(phone(h)) : ""}</div>
+        <div>${fhirTag}${profileTag(h)}${readTag("Organization")}</div>
+      </button>`).join("");
+    document.querySelectorAll("#hospitals button").forEach(b => b.addEventListener("click", () =>
+      setHospital(hospitalFilter === b.dataset.hosp ? null : b.dataset.hosp)));
+    applyHospitalScope();
+    $("agency").children[2].innerHTML = `<div class="stats">
+      <div><b id="stat-pts">${patientCount == null ? "–" : patientCount}</b><span>My patients</span></div>
+      <div><b>${hospitals.filter(Boolean).length}</b><span>Hospitals</span></div>
+      <div><b>3</b><span>Crews</span></div></div>`;
+  } catch (e) {
+    $("agency").children[1].innerHTML = '<p class="muted">Could not load agency: ' + esc(e.message) + '</p>';
+  }
+}
+
+// Minimum necessary: ask the server ONLY for EMS calls this signed-in provider worked
+// (Encounter search by participant), then read just those patients. Nobody else's records are requested.
+async function loadList() {
+  if (!isAgencyEmt) {
+    patientCount = 0;
+    const stat = document.getElementById("stat-pts");
+    if (stat) stat.textContent = "0";
+    $("list").innerHTML = '<p class="muted">This dashboard shows hospital outcomes only to EMS providers of this agency, and only for patients from their own calls.</p>';
+    applyHospitalScope();
+    return;
+  }
+  let calls = [];
+  try {
+    const b = await client.request({
+      url: "Encounter?participant=" + encodeURIComponent("Practitioner/" + me.id) + "&_count=50",
+      headers: { "Cache-Control": "no-cache" }
+    });
+    calls = (b.entry || []).map(e => e.resource)
+      .filter(enc => /^EMS-DEMO-\d{2}-EMS$/.test(tagOf(enc).value || ""))
+      .filter(enc => (enc.participant || []).some(pt => refIs(pt.individual, "Practitioner", me.id)));
+  } catch (e) {
+    $("list").innerHTML = '<p class="muted">Could not load your calls: ' + esc(e.message) + '</p>';
+    return;
+  }
+  calls.sort((a, b) => String((b.period || {}).start || "").localeCompare(String((a.period || {}).start || "")));
+  const rows = await Promise.all(calls.map(async ems => {
+    const tag = tagOf(ems).value.replace(/-EMS$/, "");
+    const [p, hosp] = await Promise.all([readRef("Patient", ems.subject), byTag("Encounter", tag + "-HOSP").catch(() => null)]);
+    const ok = p && hosp && refIs(hosp.subject, "Patient", p.id);
+    return p ? { p, tag, hospId: ok ? refId(hosp.serviceProvider, "Organization") : null } : null;
+  }));
+  const found = rows.filter(Boolean);
+  patientCount = found.length;
+  const stat = document.getElementById("stat-pts");
+  if (stat) stat.textContent = found.length;
+  if (!found.length) {
+    $("list").innerHTML = '<p class="muted">No calls found for you. The sandbox resets nightly: run <a href="admin-load.html">Admin: load demo data</a>, then reload this page.</p>';
+    applyHospitalScope();
+    return;
+  }
+  $("list").innerHTML = "";
+  patientRows = found.map(x => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = loopAvatar(isAlias(x.p) ? "?" : initials(x.p)) + "<span>" + esc(nameOf(x.p)) + (isAlias(x.p) ? '<span class="alias">alias</span>' : "") + "</span>";
+    b.addEventListener("click", () => openRow(row));
+    $("list").appendChild(b);
+    const row = { ...x, button: b };
+    return row;
+  });
+  applyHospitalScope();
+  setHospital(hospitalFilter);
+  openRow(patientRows[0]);   // most recent call opens automatically
+}
+
+function openRow(row) {
+  if (!row) return;
+  document.querySelectorAll(".list button").forEach(y => y.classList.remove("active"));
+  row.button.classList.add("active");
+  showCase(row.p, row.tag);
+}
+
+// Hospital cards: only hospitals this provider's own patients were brought to.
+function applyHospitalScope() {
+  const mine = new Set(patientRows.map(r => r.hospId).filter(Boolean));
+  document.querySelectorAll("#hospitals button").forEach(b => { b.hidden = !mine.has(b.dataset.hosp); });
+}
+
+// Narrow the list to one receiving hospital (or all of this provider's calls when id is null).
+function setHospital(id) {
+  hospitalFilter = id;
+  document.querySelectorAll("#hospitals button").forEach(b => b.classList.toggle("active", b.dataset.hosp === id));
+  let shown = 0;
+  for (const r of patientRows) {
+    const show = !id || r.hospId === id;
+    r.button.hidden = !show;
+    if (show) shown++;
+  }
+  const h = hospitalList.find(x => x.id === id);
+  $("filter").hidden = !id;
+  if (id) {
+    $("filter").innerHTML = "Showing " + shown + " of your calls brought to <b>" + esc(heading(h)) + '</b><a id="showall">All my calls</a>';
+    document.getElementById("showall").addEventListener("click", () => setHospital(null));
+  }
+  const active = patientRows.find(r => r.button.classList.contains("active"));
+  if (active && active.button.hidden) openRow(patientRows.find(r => !r.button.hidden));
+}
+
+const VITALS = [
+  { label: "Blood pressure", codes: ["85354-9"], show: o => (o.component || []).map(c => c.valueQuantity && c.valueQuantity.value).join("/") + " mmHg" },
+  { label: "Heart rate", codes: ["8867-4"], unit: "/min" },
+  { label: "Breathing rate", codes: ["9279-1"], unit: "/min" },
+  { label: "Oxygen saturation", codes: ["59408-5", "2708-6"], unit: "%" },
+  { label: "Temperature", codes: ["8310-5"], unit: "°F" },
+  { label: "Glucose", codes: ["41653-7", "2345-7"], unit: "mg/dL" }
+];
+// Only the measurement codes this page shows are requested; no other results are fetched.
+const VITAL_CODES = [...new Set(VITALS.flatMap(d => d.codes))].map(c => "http://loinc.org|" + c).join(",");
+const findVital = (obs, def) => obs.find(x => (x.code.coding || []).some(c => def.codes.includes(c.code)));
+function vitalFor(obs, def) {
+  const o = findVital(obs, def);
+  if (!o) return "—";
+  if (def.show) return def.show(o);
+  return o.valueQuantity ? o.valueQuantity.value + " " + def.unit : "—";
+}
+
+// Compare the two diagnosis codes with the SNOMED CT hierarchy on the HL7 terminology server ($subsumes).
+async function compareCodes(emsCode, hospCode) {
+  if (!emsCode || !hospCode) return "unknown";
+  if (emsCode === hospCode) return "equivalent";
+  try {
+    const r = await fetch(TX + "/CodeSystem/$subsumes?system=http://snomed.info/sct&codeA=" + encodeURIComponent(emsCode) + "&codeB=" + encodeURIComponent(hospCode), { headers: { Accept: "application/fhir+json" } });
+    const j = await r.json();
+    return ((j.parameter || []).find(x => x.name === "outcome") || {}).valueCode || "unknown";
+  } catch (e) { return "unknown"; }
+}
+const COMPARE = {
+  "equivalent": ["ok", "&#9989; Same: the hospital confirmed the EMS field impression."],
+  "subsumes": ["info", "&#128309; More specific: the EMS impression was on track, and the hospital narrowed it to a more specific diagnosis."],
+  "subsumed-by": ["info", "&#128309; Related: the hospital recorded a broader diagnosis than the EMS impression."],
+  "not-subsumed": ["bad", "&#128308; Different: the hospital found a different condition than the EMS field impression."],
+  "unknown": ["warn", "Could not check the codes with the terminology server. Compare the two diagnoses above."]
+};
+const CONF_SYS = "http://terminology.hl7.org/CodeSystem/v3-Confidentiality";  // security label system for "restricted"
+
+function crewHtml(members) {
+  if (!members.length) return '<p class="muted">No crew recorded.</p>';
+  const label = m => {
+    const t = titleOf(m.role);
+    const n = m.prac ? nameOf(m.prac) : clean(m.part.individual && m.part.individual.display) || "Unknown";
+    return (t ? t + " " : "") + n;
+  };
+  return members.map(m => {
+    const lvl = m.role ? (m.role.specialty || [])[0] : null;
+    const nucc = code0(lvl);
+    const fn = m.role ? code0((m.role.code || [])[0]) : {};
+    const lead = code0((m.part.type || [])[0]).code === "PPRF";
+    const partners = members.filter(o => o !== m).map(label);
+    return `<div class="member">
+      ${loopAvatar(initials(m.prac) || "?")}
+      <div>
+        <div class="nm">${esc(label(m))}</div>
+        ${lvl ? `<span class="pill lvl">${esc(ccText(lvl))}</span>` : `<span class="pill">Licensure level not found</span>`}
+        <span class="pill">${lead ? "Lead on this call" : "Partner on this call"}</span>
+        ${partners.length ? `<div class="partner">Partner for this call: <b>${esc(partners.join(", "))}</b></div>` : ""}
+        <div>${profileTag(m.prac)}${profileTag(m.role)}</div>
+        <div class="sub">${nucc.code ? "NUCC " + esc(nucc.code) : ""}${fn.code ? " · SNOMED " + esc(fn.code) : ""}</div>
+      </div></div>`;
+  }).join("");
+}
+function orgHtml(o, fallback) {
+  if (!o) return `<div class="org">${esc(clean(fallback) || "—")}</div>`;
+  return `<div class="org"><b>${esc(heading(o))}</b><br>${esc(clean(o.name))}<br>${esc(address(o))}${phone(o) ? "<br>" + esc(phone(o)) : ""}<div>${profileTag(o)}</div></div>`;
+}
+
+async function showCase(p, tag) {
+  $("detail").innerHTML = '<div class="panel"><p class="muted">Loading ' + esc(nameOf(p)) + '…</p></div>';
+  try {
+    const [emsEnc, hospEnc, emsDx, hospDx, obsB] = await Promise.all([
+      byTag("Encounter", tag + "-EMS"), byTag("Encounter", tag + "-HOSP"),
+      byTag("Condition", tag + "-EMS-DX"), byTag("Condition", tag + "-HOSP-DX"),
+      client.request({ url: "Observation?patient=" + p.id + "&code=" + encodeURIComponent(VITAL_CODES) + "&_count=50", headers: { "Cache-Control": "no-cache" } })
+    ]);
+    const obs = (obsB.entry || []).map(e => e.resource);
+    const emsObs = emsEnc ? obs.filter(o => refIs(o.encounter, "Encounter", emsEnc.id)) : [];
+    const hospObs = hospEnc ? obs.filter(o => refIs(o.encounter, "Encounter", hospEnc.id)) : [];
+
+    // Who and where: agency, hospital, crew with licensure levels (all read from the server).
+    const [agency, hospital] = await Promise.all([
+      emsEnc ? readRef("Organization", emsEnc.serviceProvider) : null,
+      hospEnc ? readRef("Organization", hospEnc.serviceProvider) : null
+    ]);
+    const members = await Promise.all(((emsEnc && emsEnc.participant) || []).map(async part => {
+      const prac = await readRef("Practitioner", part.individual);
+      const role = prac ? await roleFor(prac.id, agency && agency.id) : null;
+      return { part, prac, role };
+    }));
+
+    // Restricted diagnoses: ask the server only HOW MANY restricted diagnoses the hospital visit has
+    // (_summary=count). The diagnoses themselves are never requested or shown.
+    const restrictedCount = hospEnc ? await client.request({
+      url: "Condition?encounter=" + hospEnc.id + "&_security=" + encodeURIComponent(CONF_SYS + "|R") + "&_summary=count",
+      headers: { "Cache-Control": "no-cache" } }).then(b => b.total || 0).catch(() => 0) : 0;
+    // Unidentified patient: the triage tag links the EMS and hospital records. Once identified, the alias
+    // record's Patient.link (type "replaced-by") points to the identified record.
+    const tagId = tagValue(p, TRIAGE_SYS);
+    const repl = (p.link || []).find(l => l.type === "replaced-by");
+    const identified = tagId && repl ? await readRef("Patient", repl.other) : null;
+    const tagOk = tagId && emsEnc && hospEnc && tagValue(emsEnc, TRIAGE_SYS) === tagId && tagValue(hospEnc, TRIAGE_SYS) === tagId;
+    const outcome = await compareCodes(emsDx && code0(emsDx.code).code, hospDx && code0(hospDx.code).code);
+
+    // The hospital visit points back to the EMS impression.
+    const linked = hospEnc && emsDx && (hospEnc.reasonReference || []).some(r => refIs(r, "Condition", emsDx.id));
+    const ver = c => code0(c && c.verificationStatus).code || "";
+
+    $("detail").innerHTML = `
+      <div class="panel">
+        <h2>${esc(nameOf(p))}${isAlias(p) ? '<span class="alias">temporary alias</span>' : ""}</h2>
+        <div class="muted">${p.birthDate ? "Born " + esc(born(p.birthDate)) : "Birth date unknown"} · gender: ${esc(p.gender || "")} · Case ${esc(tag)}</div>
+        <div>${fhirTag}${profileTag(p)}${readTag("Patient")}</div>
+        ${tagId ? `<div class="tagbox"><div class="qr" id="qr"></div><div>
+          <b>Arrived unidentified.</b> Triage tag <b>${esc(tagId)}</b> was placed at the scene.<br>
+          ${tagOk ? "&#10004; The EMS call and the hospital visit both carry this tag, so they match without a name." : "&#10006; The tag is missing from the EMS call or the hospital visit."}<br>
+          ${identified ? "Identified at the hospital as <b>" + esc(nameOf(identified)) + "</b> (linked record " + profileTag(identified) + ")." : "Not yet identified."}
+          <div class="muted">The QR holds only the triage tag ID: no name and no health information.</div></div></div>` : ""}
+      </div>
+      <div class="banner ${linked ? "ok" : "bad"}">${linked
+        ? "&#10004; The hospital visit is linked to this EMS impression: the EMS impression prompted the visit."
+        : "&#10006; No link found from the hospital visit back to the EMS impression."}</div>
+      <div class="cols">
+        <div class="panel ems">
+          <h3>EMS field impression</h3>
+          <div class="dx">${esc(emsDx ? ccText(emsDx.code) : "Not found")}</div>
+          ${emsDx ? `<span class="pill prov">${esc(ver(emsDx))}</span><span class="pill">SNOMED ${esc(code0(emsDx.code).code)}</span><div>${profileTag(emsDx)}${profileTag(emsEnc)}</div>` : ""}
+          <dl>
+            <dt>Call time</dt><dd>${esc(emsEnc ? when(emsEnc.period && emsEnc.period.start) : "—")}</dd>
+            <dt>Handed off</dt><dd>${esc(emsEnc ? when(emsEnc.period && emsEnc.period.end) : "—")}</dd>
+          </dl>
+          <h4>Crew</h4>
+          ${crewHtml(members)}
+          <h4>Agency</h4>
+          ${orgHtml(agency, emsEnc && emsEnc.serviceProvider && emsEnc.serviceProvider.display)}
+        </div>
+        <div class="panel hosp">
+          <h3>Hospital diagnosis</h3>
+          <div class="dx">${esc(hospDx ? ccText(hospDx.code) : "Not found")}</div>
+          ${hospDx ? `<span class="pill conf">${esc(ver(hospDx))}</span><span class="pill">SNOMED ${esc(code0(hospDx.code).code)}</span><div>${profileTag(hospDx)}${profileTag(hospEnc)}</div>` : ""}
+          <dl>
+            <dt>Arrived</dt><dd>${esc(hospEnc ? when(hospEnc.period && hospEnc.period.start) : "—")}</dd>
+            <dt>Visit type</dt><dd>${esc(hospEnc ? (hospEnc.class && hospEnc.class.display) : "—")}</dd>
+            <dt>Discharged</dt><dd>${esc(hospEnc ? when(hospEnc.period && hospEnc.period.end) : "—")}</dd>
+            <dt>Outcome</dt><dd>${esc(hospEnc && hospEnc.hospitalization ? ccText(hospEnc.hospitalization.dischargeDisposition) : "—")}</dd>
+          </dl>
+          ${restrictedCount ? `<div class="restricted"><b>Restricted diagnosis.</b> The hospital marked an additional diagnosis as restricted. It is not shown here.</div>` : ""}
+          <h4>Receiving hospital</h4>
+          ${orgHtml(hospital, hospEnc && hospEnc.serviceProvider && hospEnc.serviceProvider.display)}
+        </div>
+      </div>
+      <div class="banner ${COMPARE[outcome] ? COMPARE[outcome][0] : "warn"}">${(COMPARE[outcome] || COMPARE.unknown)[1]}
+        <small>Compared with the SNOMED CT hierarchy on the HL7 terminology server (FHIR $subsumes).</small></div>
+      <div class="panel" style="margin-top:1rem">
+        <h3>Vital signs</h3>
+        <table>
+          <thead><tr><th>Vital</th><th>EMS (on scene)</th><th>Hospital (arrival)</th><th>US Core 6.1.0 profile</th></tr></thead>
+          <tbody>${VITALS.map(d => `<tr><td>${d.label}</td><td>${esc(vitalFor(emsObs, d))}</td><td>${esc(vitalFor(hospObs, d))}</td><td>${profileTag(findVital(emsObs, d) || findVital(hospObs, d))}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>`;
+    if (tagId && window.qrcode) {
+      const q = qrcode(0, "M"); q.addData(TRIAGE_SYS + "|" + tagId); q.make();
+      document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 3, margin: 2, scalable: true });
+    }
+  } catch (e) {
+    $("detail").innerHTML = '<div class="panel"><p class="muted">Could not load this case: ' + esc(e.message) + '</p></div>';
+  }
+}
+</script>
+</body>
+</html>

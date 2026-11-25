@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Field to FHIR | Take a Tour</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; color: #1f2937; background: #f1f5f9; }
+    header { background: #0f3d63; color: #fff; padding: 1.2rem 1.25rem; }
+    header .in { max-width: 1140px; margin: 0 auto; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+    header img { width: 56px; height: 56px; border-radius: 12px; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: .15rem 0 0; opacity: .85; font-size: .95rem; }
+    header a.back { margin-left: auto; color: #fff; border: 1px solid #fff; border-radius: 8px; padding: .4rem .8rem; text-decoration: none; font-size: .9rem; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 1.25rem; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.3rem 1.4rem; margin-bottom: 1.2rem; }
+    .card h2 { font-size: 1.15rem; margin: 0 0 .2rem; }
+    .src { font-size: .8rem; color: #6b7280; margin: 0 0 .8rem; }
+    .pattern { font-size: .95rem; color: #4b5563; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: .6rem .8rem; margin: 0 0 .7rem; }
+    .filled { font-size: 1.08rem; line-height: 1.75; margin: 0; }
+    .slot { border-radius: 6px; padding: .1rem .35rem; }
+    .who { background: #ffedd5; color: #9a3412; } .what { background: #dbeafe; color: #1e40af; } .how { background: #dcfce7; color: #166534; }
+    .legend { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; font-size: .78rem; }
+    .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 760px) { .doors { grid-template-columns: 1fr; } }
+    .door { border-radius: 12px; padding: 1rem; border: 1px solid #e5e7eb; }
+    .door.admin { border-top: 4px solid #ea580c; } .door.ems { border-top: 4px solid #0d9488; }
+    .door h3 { margin: 0 0 .3rem; font-size: 1.02rem; }
+    .door ol { margin: .5rem 0 0; padding-left: 1.2rem; line-height: 1.55; font-size: .93rem; }
+    .tag { display: inline-block; font-size: .75rem; padding: .15rem .5rem; border-radius: 6px; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    th { color: #6b7280; font-weight: 500; }
+    code { background: #f1f5f9; padding: .05rem .3rem; border-radius: 4px; font-size: .88em; }
+    .note { font-size: .88rem; color: #6b7280; }
+    .cta { text-align: center; margin: 1rem 0 .5rem; }
+    .cta a { display: inline-block; font-size: 1.05rem; padding: .8rem 1.8rem; border-radius: 10px; background: #2563eb; color: #fff; font-weight: 600; text-decoration: none; }
+    footer { text-align: center; font-size: .8rem; color: #6b7280; padding: 1rem 1rem 2rem; }
+  </style>
+</head>
+<body>
+  <header><div class="in">
+    <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
+    <div><h1>Take a tour of Field to FHIR</h1><p>What the app is for, who signs in where, and what it shows</p></div>
+    <a class="back" href="launch.html">&larr; Back to the app</a>
+  </div></header>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>Why this app exists: the purpose sentence</h2>
+      <p class="src">HL7 Break the Code, Week 7, Task 2</p>
+      <p class="pattern">"My app helps <b>&lt;type of user&gt;</b> to <b>&lt;do something useful&gt;</b> by <b>&lt;what the app provides&gt;</b>."</p>
+      <p class="filled"><b>Field to FHIR</b> helps <span class="slot who">EMS professionals</span> <span class="slot what">see what happened to their patients after hospital handoff</span> by <span class="slot how">bringing the EMS field impression, crew and vital signs together with the hospital's diagnosis and outcome in one view</span>.</p>
+      <div class="legend"><span class="slot who">Who it helps</span><span class="slot what">What it helps them do</span><span class="slot how">What the app provides</span></div>
+    </div>
+
+    <div class="card">
+      <h2>What the app should do: the goal sentence</h2>
+      <p class="src">HL7 Break the Code, Week 8, Task 3</p>
+      <p class="pattern">"I'd like the app to <b>___</b> so a <b>___</b> can <b>___</b>."</p>
+      <p class="filled">I'd like the app to <span class="slot what">compare each EMS field impression with the hospital's final diagnosis</span> so an <span class="slot who">EMS crew</span> can <span class="slot how">learn whether their impression was right and improve their care</span>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Two doors, one sign-in</h2>
+      <p class="src">Both doors use the same SMART sign-in address (one issuer). Each page asks for different permissions.</p>
+      <div class="doors">
+        <div class="door admin">
+          <h3>Door 1: administrator <span class="tag">create, read, search</span></h3>
+          <div class="note">Page: <code>admin-load.html</code>. Signs in as Dr. Albertine Orn, a sample practitioner built into the sandbox, so she is there even after the nightly wipe.</div>
+          <ol>
+            <li>The admin page asks the FHIR server for its SMART settings.</li>
+            <li>The administrator signs in on the sandbox's sign-in page.</li>
+            <li>The administrator approves create, read and search permissions (<code>user/....crs</code>), with no update or delete.</li>
+            <li>The sign-in server gives the admin page a temporary access key for those permissions only.</li>
+            <li>The admin page sends REST requests: <code>GET</code> to check whether each record exists, then <code>POST</code> to create only the missing ones.</li>
+          </ol>
+        </div>
+        <div class="door ems">
+          <h3>Door 2: EMS provider <span class="tag">read and search only</span></h3>
+          <div class="note">Pages: face page, then dashboard. Signs in as one of the agency's EMTs, who appear on the sandbox sign-in list after door 1 reloads the data.</div>
+          <ol>
+            <li>The face page asks the FHIR server for its SMART settings.</li>
+            <li>The EMS provider signs in on the sandbox's sign-in page.</li>
+            <li>The EMS provider approves read and search permissions only (<code>user/....rs</code>).</li>
+            <li>The sign-in server gives the dashboard a temporary access key, and tells it who signed in (<code>fhirUser</code>).</li>
+            <li>The dashboard sends <code>GET</code> requests only, such as <code>GET Encounter?participant=…</code>, and shows only that provider's own calls.</li>
+          </ol>
+        </div>
+      </div>
+      <p class="note" style="margin-top:.8rem">The sandbox uses a simplified practice login. In production, each EMT signs in with their own credentials, and the app receives their identity and read-only permissions the same way through SMART.</p>
+    </div>
+
+    <div class="card">
+      <h2>What the comparison shows</h2>
+      <p class="src">The dashboard compares the EMS and hospital diagnosis codes using the SNOMED CT hierarchy on the HL7 terminology server (FHIR <code>$subsumes</code>).</p>
+      <table>
+        <tr><th>Result</th><th>Meaning</th><th>Example in the test data</th></tr>
+        <tr><td>&#9989; Same</td><td>The hospital confirmed the EMS field impression.</td><td>Sepsis &rarr; sepsis</td></tr>
+        <tr><td>&#128309; More specific</td><td>The EMS impression was on track; the hospital narrowed it.</td><td>Myocardial infarction &rarr; acute myocardial infarction</td></tr>
+        <tr><td>&#128308; Different</td><td>The hospital found a different condition.</td><td>Suspected stroke &rarr; low blood sugar (a stroke mimic)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Privacy and patient identity</h2>
+      <table>
+        <tr><th>Situation</th><th>How the app handles it</th><th>Standard used</th></tr>
+        <tr><td>Sensitive hospital diagnosis (substance use)</td><td>The EMS side shows normally. The sensitive diagnosis is never requested or shown: the dashboard asks only how many restricted diagnoses exist and says "Restricted diagnosis. The hospital marked an additional diagnosis as restricted. It is not shown here."</td><td>FHIR security labels (<code>meta.security</code>): restricted, substance-use sensitivity</td></tr>
+        <tr><td>Unresponsive patient with no ID (mass casualty incident)</td><td>A temporary alias name, as a registration system would assign (never "John Doe"), gender recorded as unknown rather than assumed, and a QR triage tag that holds only the triage tag ID. The EMS call and the hospital visit carry the same tag, so the outcome matches without a name. Once identified, the alias record points to the hospital's identified record (<code>Patient.link</code>, type <code>replaced-by</code>), which marks the alias as the duplicate.</td><td>US Core 6.1.0 Patient (<code>name.use = temp</code>, <code>gender = unknown</code>), <code>identifier</code>, <code>Patient.link</code>; AHIMA naming guidance</td></tr>
+        <tr><td>All test data</td><td>Fictional people and places only, marked synthetic behind the scenes. No free-text narratives.</td><td>HIPAA minimum-necessary idea: read-only access</td></tr>
+      </table>
+    </div>
+
+    <p class="note" style="text-align:center">Screenshots of each screen will be added here after the next data reload.</p>
+    <div class="cta"><a href="launch.html">Go to sign-in</a></div>
+  </div>
+
+  <footer>Fictional test data for the HL7 Break the Code program · FHIR 4.0.1 · US Core 6.1.0 · SMART App Launch 2.2.0</footer>
+</body>
+</html>
