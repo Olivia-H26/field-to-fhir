@@ -1,11 +1,11 @@
 {
   "title": "Field to FHIR: synthetic case scenarios",
-  "purpose": "Eleven synthetic EMS-to-hospital case scenarios. ems-demo-bundle.json is built from these scenarios.",
+  "purpose": "Eleven synthetic EMS-to-hospital case scenarios. field-to-fhir-data.json is built from these scenarios.",
   "syntheticOnly": true,
   "caseCount": 11,
   "cases": [
     {
-      "id": "EMS-DEMO-01",
+      "id": "F2F-01",
       "name": "Jordan Taylor",
       "dob": "1984-02-14",
       "gender": "female",
@@ -17,89 +17,11 @@
       "hospitalDx": "ST elevation myocardial infarction (STEMI) involving the left anterior descending coronary artery",
       "hospitalCourse": "Emergent cardiac catheterization: coronary angiography (low osmolar contrast) showed occlusion of the LAD due to atherosclerotic coronary artery disease; percutaneous coronary intervention with one drug-eluting stent to the LAD. Inpatient cardiology care.",
       "discharge": "Discharged home with cardiology follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "394659003"
-            }
-          ],
-          "text": "Suspected acute coronary syndrome"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "57054005"
-            }
-          ],
-          "text": "Acute myocardial infarction"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Chest pressure",
-          "finding": "Central chest pressure",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Associated symptoms",
-          "finding": "Nausea and diaphoresis",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Mental status",
-          "finding": "Alert and oriented",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "12-lead ECG",
-          "finding": "Obtained; interpretation not documented",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Cardiac biomarkers",
-          "finding": "Serial testing described; values not documented",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected myocardial infarction (STEMI pattern on 12-lead ECG)\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-02",
+      "id": "F2F-02",
       "name": "Morgan Lee",
       "dob": "1976-05-09",
       "gender": "male",
@@ -111,82 +33,11 @@
       "hospitalDx": "Pneumonia due to Streptococcus pneumoniae, with hypoxemia",
       "hospitalCourse": "Chest imaging showed right lower lobe consolidation; sputum culture grew Streptococcus pneumoniae. Hypoxemia treated with supplemental oxygen; IV antibiotics.",
       "discharge": "Discharged home on oral antibiotics with follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "50417007"
-            }
-          ],
-          "text": "Suspected lower respiratory infection"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "385093006"
-            }
-          ],
-          "text": "Community-acquired pneumonia"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Temperature",
-          "finding": "Fever described; numeric temperature not documented",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Respiratory findings",
-          "finding": "Productive cough, tachypnea, focal crackles",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Oxygen saturation",
-          "finding": "Reduced; numeric value not documented",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Chest imaging",
-          "finding": "Performed; result not specified",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected lower respiratory infection\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-03",
+      "id": "F2F-03",
       "name": "Casey Rivera",
       "dob": "1968-08-22",
       "gender": "female",
@@ -198,75 +49,11 @@
       "hospitalDx": "Acute ischemic stroke: cerebral infarction due to thrombosis of the left middle cerebral artery",
       "hospitalCourse": "CT/CTA showed left MCA thrombosis. NIH Stroke Scale total score 8. Right hemiparesis (right-hand dominant), aphasia and right facial weakness. IV alteplase given in this hospital's emergency department through a peripheral vein. Inpatient neurologic management.",
       "discharge": "Discharged to an inpatient rehabilitation facility.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "230690007"
-            }
-          ],
-          "text": "Suspected acute stroke"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "422504002"
-            }
-          ],
-          "text": "Acute ischemic stroke"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Neurologic findings",
-          "finding": "Facial asymmetry, arm drift, speech difficulty",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Last known well",
-          "finding": "Documented in narrative; exact time not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Brain imaging",
-          "finding": "Performed; imaging report not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected acute stroke\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-04",
+      "id": "F2F-04",
       "name": "Avery Brooks",
       "dob": "1959-11-03",
       "gender": "male",
@@ -278,75 +65,11 @@
       "hospitalDx": "Displaced intertrochanteric fracture of the right femur, closed",
       "hospitalCourse": "Radiographs confirmed a displaced intertrochanteric fracture of the right femur. Closed reduction of the fracture, then percutaneous internal fixation with an intramedullary (cephalomedullary) nail.",
       "discharge": "Discharged to a skilled nursing facility for rehabilitation therapy, with orthopedic follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "263225007"
-            }
-          ],
-          "text": "Suspected hip fracture"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "263225007"
-            }
-          ],
-          "text": "Proximal femur fracture"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Limb findings",
-          "finding": "Shortened externally rotated leg, significant hip pain",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Neurovascular assessment",
-          "finding": "Distal circulation and sensation assessed; results not specified",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Radiographs",
-          "finding": "Fracture confirmed; detailed site not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected hip fracture\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-05",
+      "id": "F2F-05",
       "name": "Riley Parker",
       "dob": "1992-01-17",
       "gender": "female",
@@ -358,82 +81,11 @@
       "hospitalDx": "Type 1 diabetes mellitus with hypoglycemia without coma; hypoglycemia level 3",
       "hospitalCourse": "Glucose stabilized; insulin regimen and meal timing reviewed; observed for recurrence.",
       "discharge": "Discharged home after glucose stabilized, with diabetes education.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "302866003"
-            }
-          ],
-          "text": "Symptomatic hypoglycemia"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "302866003"
-            }
-          ],
-          "text": "Hypoglycemia"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Point-of-care glucose",
-          "finding": "Markedly low; numeric result not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Mental status",
-          "finding": "Confusion and diaphoresis",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Repeat glucose",
-          "finding": "Checked after treatment; values not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Glucose trend",
-          "finding": "Stabilized; values not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Symptomatic hypoglycemia\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-06",
+      "id": "F2F-06",
       "name": "Cameron Davis",
       "dob": "2001-04-26",
       "gender": "male",
@@ -445,75 +97,11 @@
       "hospitalDx": "Acute appendicitis with localized peritonitis, without perforation or gangrene",
       "hospitalCourse": "CT confirmed acute appendicitis with localized peritonitis; no perforation, no gangrene. Laparoscopic appendectomy.",
       "discharge": "Discharged home after postoperative recovery with surgical follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "74400008"
-            }
-          ],
-          "text": "Suspected appendicitis"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "85189001"
-            }
-          ],
-          "text": "Acute appendicitis"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Abdominal examination",
-          "finding": "Right lower quadrant tenderness with nausea",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Vital signs",
-          "finding": "Monitored; measurements not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Imaging",
-          "finding": "Appendicitis confirmed; report not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected appendicitis\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-07",
+      "id": "F2F-07",
       "name": "Taylor Morgan",
       "dob": "1988-07-12",
       "gender": "female",
@@ -525,75 +113,11 @@
       "hospitalDx": "Moderate persistent asthma with acute exacerbation",
       "hospitalCourse": "Bronchodilators and systemic corticosteroids; monitored until respiratory status improved. Asthma classified as moderate persistent.",
       "discharge": "Discharged home with inhaler plan and follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "281239006"
-            }
-          ],
-          "text": "Acute asthma exacerbation"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "281239006"
-            }
-          ],
-          "text": "Acute asthma exacerbation"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Respiratory examination",
-          "finding": "Wheezing and increased work of breathing",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Peak expiratory flow",
-          "finding": "Reduced where obtainable; numeric result not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Respiratory reassessment",
-          "finding": "Improved after treatment; measurements not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Acute asthma exacerbation\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-08",
+      "id": "F2F-08",
       "name": "Alex Johnson",
       "dob": "1995-10-30",
       "gender": "male",
@@ -605,70 +129,6 @@
       "hospitalDx": "Concussion without loss of consciousness",
       "hospitalCourse": "CT head: no acute intracranial injury. Serum ethanol 150 mg/dL; alcohol intoxication, uncomplicated. Observed.",
       "discharge": "Discharged home with head-injury precautions and follow-up.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "110030002"
-            }
-          ],
-          "text": "Suspected concussion / mild traumatic brain injury"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "62106007"
-            }
-          ],
-          "text": "Concussion without loss of consciousness"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Neurologic assessment",
-          "finding": "Headache and brief confusion after head impact",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Cervical-spine assessment",
-          "finding": "Precautions assessed; specific findings not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Head imaging",
-          "finding": "No acute intracranial injury identified",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected concussion / mild traumatic brain injury\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition.",
       "sensitiveDx": {
@@ -680,7 +140,7 @@
       }
     },
     {
-      "id": "EMS-DEMO-09",
+      "id": "F2F-09",
       "name": "Jamie Wilson",
       "dob": "1952-03-06",
       "gender": "female",
@@ -692,75 +152,11 @@
       "hospitalDx": "Severe sepsis due to Escherichia coli urinary tract infection, with acute metabolic encephalopathy",
       "hospitalCourse": "Blood and urine cultures grew Escherichia coli; source urinary tract infection. Acute metabolic encephalopathy as sepsis-related organ dysfunction; no septic shock. IV antibiotics and fluids.",
       "discharge": "Discharged to a skilled nursing facility for continued IV antibiotics and rehabilitation.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "91302008"
-            }
-          ],
-          "text": "Suspected sepsis"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "91302008"
-            }
-          ],
-          "text": "Sepsis due to suspected infection"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Vital signs and mentation",
-          "finding": "Fever, tachycardia, hypotension, altered mentation; measurements not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Possible infection source",
-          "finding": "Noted; source not specified",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Cultures and laboratory evaluation",
-          "finding": "Performed; results not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected sepsis\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-10",
+      "id": "F2F-10",
       "name": "Quinn Harris",
       "dob": "1981-12-19",
       "gender": "female",
@@ -772,82 +168,11 @@
       "hospitalDx": "Type 2 diabetes mellitus with hypoglycemia without coma (stroke mimic), due to glipizide taken as prescribed; hypoglycemia level 3",
       "hospitalCourse": "Serum glucose 41 mg/dL on arrival; deficits resolved fully after IV dextrose (level 3 hypoglycemia: altered status requiring assistance). Adverse effect of glipizide taken as prescribed. Long-term oral hypoglycemic use. Stroke alert cancelled.",
       "discharge": "Discharged home after glucose stabilized, with diabetes medication review.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "230690007"
-            }
-          ],
-          "text": "Suspected acute stroke"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "302866003"
-            }
-          ],
-          "text": "Hypoglycemia (stroke mimic); deficits resolved after IV dextrose"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Consciousness",
-          "finding": "Transient loss of consciousness with spontaneous recovery",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "ECG",
-          "finding": "Assessed; interpretation not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Orthostatic symptoms",
-          "finding": "Assessed; results not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Cardiac evaluation",
-          "finding": "No acute cause identified during observation",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Suspected acute stroke\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition."
     },
     {
-      "id": "EMS-DEMO-11",
+      "id": "F2F-11",
       "name": "",
       "dob": null,
       "gender": "unknown",
@@ -859,70 +184,6 @@
       "hospitalDx": "Traumatic subdural hemorrhage with loss of consciousness of 6 to 24 hours, closed",
       "hospitalCourse": "CT showed left acute subdural hematoma; open craniotomy with evacuation of the subdural hematoma. Regained consciousness 14 hours after injury. Registered under alias Copper Heron by triage tag; identified by family on day 2 as Elena Marsh.",
       "discharge": "Discharged to an inpatient rehabilitation facility.",
-      "emsConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "82271004"
-            }
-          ],
-          "text": "Head injury, unresponsive"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "provisional"
-            }
-          ]
-        },
-        "note": "Draft only; EMS certainty must be checked against actual documentation."
-      },
-      "hospitalConditionDraft": {
-        "code": {
-          "coding": [
-            {
-              "system": "http://snomed.info/sct",
-              "code": "209947002"
-            }
-          ],
-          "text": "Closed traumatic subdural hemorrhage"
-        },
-        "verificationStatus": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
-              "code": "confirmed"
-            }
-          ]
-        },
-        "note": "Draft only; confirm status against actual hospital documentation."
-      },
-      "missingDataPolicy": "Do not fabricate vital signs, medication doses, procedures, imaging findings, dates, or resource identifiers.",
-      "observationDrafts": [
-        {
-          "setting": "EMS",
-          "label": "Vital signs and mentation",
-          "finding": "Fever, tachycardia, hypotension, altered mentation; measurements not supplied",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "EMS",
-          "label": "Possible infection source",
-          "finding": "Noted; source not specified",
-          "source": "emsAssessment / emsTreatment",
-          "fhirWriteReady": false
-        },
-        {
-          "setting": "Hospital",
-          "label": "Cultures and laboratory evaluation",
-          "finding": "Performed; results not supplied",
-          "source": "hospitalCourse",
-          "fhirWriteReady": false
-        }
-      ],
       "emsImpressionPromptedVisit": true,
       "visitReasonStatement": "EMS transported the patient to the receiving hospital for the field impression \"Head injury, unresponsive\". This EMS impression prompted the hospital evaluation, so the hospital Encounter.reasonReference points to the EMS Condition.",
       "unidentified": true,

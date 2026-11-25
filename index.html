@@ -136,10 +136,10 @@
 
 <script>
 "use strict";
-const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/ems-demo-v2";
-const CASES = Array.from({ length: 11 }, (_, i) => "EMS-DEMO-" + String(i + 1).padStart(2, "0"));
-const AGENCY_TAG = "EMS-DEMO-AGENCY-001";
-const HOSPITAL_TAGS = ["EMS-DEMO-HOSP-001", "EMS-DEMO-HOSP-002", "EMS-DEMO-HOSP-003"];
+const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/case";
+const CASES = Array.from({ length: 11 }, (_, i) => "F2F-" + String(i + 1).padStart(2, "0"));
+const AGENCY_TAG = "F2F-AGENCY-001";
+const HOSPITAL_TAGS = ["F2F-HOSP-001", "F2F-HOSP-002", "F2F-HOSP-003"];
 const TRIAGE_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag";
 const TX = "https://tx.fhir.org/r4";
 const $ = id => document.getElementById(id);
@@ -197,10 +197,10 @@ const readTag = type => `<span class="std smart" title="SMART App Launch 2.2.0 g
 const fhirTag = '<span class="std fhir">FHIR 4.0.1</span>';
 // Easter-egg headings, matched by each organization's project tag.
 const HEADINGS = {
-  "EMS-DEMO-AGENCY-001": "EMS Organization FHIR 4.0.1",
-  "EMS-DEMO-HOSP-001": "SMART 2.2.0 Hospital",
-  "EMS-DEMO-HOSP-002": "US Core 6.1.0 Hospital",
-  "EMS-DEMO-HOSP-003": "HAPI SWAGGER Hospital"
+  "F2F-AGENCY-001": "EMS Organization FHIR 4.0.1",
+  "F2F-HOSP-001": "SMART 2.2.0 Hospital",
+  "F2F-HOSP-002": "US Core 6.1.0 Hospital",
+  "F2F-HOSP-003": "HAPI SWAGGER Hospital"
 };
 const tagOf = r => ((r && r.identifier) || []).find(i => i.system === ID_SYS) || {};
 const heading = o => HEADINGS[tagOf(o).value] || clean(o && o.name);
@@ -315,7 +315,7 @@ async function loadList() {
       headers: { "Cache-Control": "no-cache" }
     });
     calls = (b.entry || []).map(e => e.resource)
-      .filter(enc => /^EMS-DEMO-\d{2}-EMS$/.test(tagOf(enc).value || ""))
+      .filter(enc => /^F2F-\d{2}-EMS$/.test(tagOf(enc).value || ""))
       .filter(enc => (enc.participant || []).some(pt => refIs(pt.individual, "Practitioner", me.id)));
   } catch (e) {
     $("list").innerHTML = '<p class="muted">Could not load your calls: ' + esc(e.message) + '</p>';

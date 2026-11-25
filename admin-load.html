@@ -56,7 +56,7 @@ Synthetic data only: never send real patient data to the public validator.</p>
 
 const CLIENT_ID = "my_web_app";
 const REDIRECT_URI = new URL("admin-load.html", window.location.href).href.split("?")[0];
-const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/ems-demo-v2";
+const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/case";
 const TYPES = ["Organization", "Practitioner", "PractitionerRole", "Patient", "Encounter", "Condition", "Observation", "Procedure"];
 const SCOPES = ["openid", "fhirUser"].concat(TYPES.map(t => "user/" + t + ".crs")).join(" ");
 
@@ -136,7 +136,7 @@ async function validateBundle(text) {
       method: "POST", signal: ctrl.signal,
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ cliContext: { sv: "4.0.1", igs: ["hl7.fhir.us.core#6.1.0"] },
-        filesToValidate: [{ fileName: "ems-demo-bundle.json", fileContent: text, fileType: "json" }] })
+        filesToValidate: [{ fileName: "field-to-fhir-data.json", fileContent: text, fileType: "json" }] })
     });
     if (!r.ok) throw new Error("validator answered HTTP " + r.status);
     j = await r.json();
@@ -177,7 +177,7 @@ $("load").addEventListener("click", async () => {
   results.length = 0;
   $("results").innerHTML = "<li class='muted'>Waiting for validation...</li>";
   try {
-    const text = await (await fetch("ems-demo-bundle.json", { cache: "no-store" })).text();
+    const text = await (await fetch("field-to-fhir-data.json", { cache: "no-store" })).text();
     if (!(await validateBundle(text))) {
       $("results").innerHTML = "<li class='bad'>Loading stopped: the data did not pass validation.</li>";
       $("load").disabled = false;
@@ -231,7 +231,7 @@ const refIs = (ref, type, id) => !!ref && typeof ref.reference === "string" &&
 async function verify(byIdent) {
   saved = byIdent || {};
   for (let i = 1; i <= 11; i++) {
-    const cid = "EMS-DEMO-" + String(i).padStart(2, "0");
+    const cid = "F2F-" + String(i).padStart(2, "0");
     try {
       const p = await one("Patient", cid);
       const emsEnc = await one("Encounter", cid + "-EMS");

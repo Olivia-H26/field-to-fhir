@@ -24,7 +24,7 @@ Test results are evidence for what each test checked. They are not a certificati
 | `tour.html` | Guided tour of the app and the standards each feature uses. |
 | `health.html` | Hosting check. |
 | `js/smart-config.js` | The sandbox address used by every sign-in page. |
-| `ems-demo-bundle.json` | The synthetic data, as one FHIR transaction Bundle. |
+| `field-to-fhir-data.json` | The synthetic data, as one FHIR transaction Bundle. |
 | `synthetic-patient-cases.json` | The synthetic case scenarios the data is built from. |
 
 ## Permissions the dashboard asks for
