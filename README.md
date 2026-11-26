@@ -5,7 +5,6 @@
 Field to FHIR is a provider-facing SMART on FHIR app. An EMS provider signs in and sees what happened at the hospital to patients from their own calls: the field impression, the hospital diagnosis, and the discharge disposition.
 
 - **App:** https://olivia-h26.github.io/field-to-fhir/launch.html
-- **Tour:** https://olivia-h26.github.io/field-to-fhir/tour.html
 
 All data is synthetic: fictional people and organizations. The app runs on the SMART Health IT sandbox, which resets nightly.
 
@@ -29,7 +28,6 @@ Test results are evidence for what each test checked. They are not a certificati
 | `launch.html` | Sign-in page. Starts a SMART standalone provider launch with PKCE and accepts only trusted sign-in servers. |
 | `index.html` | Dashboard after sign-in. Shows only the signed-in EMS provider's own calls. |
 | `admin-load.html` | Demo-only page that loads the synthetic data into the sandbox after it passes the HL7 FHIR Validator. A real deployment would not need it. |
-| `tour.html` | Guided tour of the app and the standards each feature uses. |
 | `health.html` | Hosting check. |
 | `js/smart-config.js` | The sandbox address used by every sign-in page. |
 | `field-to-fhir-data.json` | The synthetic data, as one FHIR transaction Bundle. |
