@@ -24,7 +24,8 @@
 <body>
 <h1>Load demo data</h1>
 <p class="muted">Admin door, for Dr. Albertine Orn, EMS Organization Medical Director, only. Loads the synthetic EMS cases into the SMART sandbox, then checks every record and link.
-The sandbox resets every night, so run this before each demo. Running it twice does not create duplicates.</p>
+The sandbox resets every night, so run this before each demo. Running it again does not create duplicates:
+records already there are updated to match the data file.</p>
 <p class="muted">Validation gate: before anything is created, every record is sent to the official HL7 FHIR Validator
 (FHIR 4.0.1 + US Core 6.1.0). If the validator reports any error, or cannot be reached, nothing is loaded.
 Synthetic data only: never send real patient data to the public validator.</p>
@@ -60,7 +61,9 @@ const CLIENT_ID = "my_web_app";
 const REDIRECT_URI = new URL("admin-load.html", window.location.href).href.split("?")[0];
 const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/case";
 const TYPES = ["Organization", "Practitioner", "PractitionerRole", "Patient", "Encounter", "Condition", "Observation", "Procedure"];
-const SCOPES = ["openid", "fhirUser"].concat(TYPES.map(t => "user/" + t + ".crs")).join(" ");
+// Create, read, update and search (no delete): update lets a reload bring records already in the sandbox
+// up to date with the data file the same day, instead of waiting for the nightly reset.
+const SCOPES = ["openid", "fhirUser"].concat(TYPES.map(t => "user/" + t + ".crus")).join(" ");
 
 // Only the EMS Organization Medical Director may load data. She is a built-in sandbox practitioner,
 // so she is there even after the nightly reset. EMTs who sign in here are turned away.
@@ -154,6 +157,17 @@ async function findByIdentifier(type, value) {
   return (b.entry || []).map(e => e.resource);
 }
 
+// Compare a record in the sandbox with the data file, ignoring what the server adds itself.
+function canon(o) {
+  if (Array.isArray(o)) return o.map(canon);
+  if (o && typeof o === "object") { const out = {}; Object.keys(o).sort().forEach(k => { out[k] = canon(o[k]); }); return out; }
+  return o;
+}
+function sameContent(a, b) {
+  const strip = r => { const c = JSON.parse(JSON.stringify(r)); delete c.id; if (c.meta) { delete c.meta.versionId; delete c.meta.lastUpdated; delete c.meta.source; } return JSON.stringify(canon(c)); };
+  return strip(a) === strip(b);
+}
+
 function swapRefs(obj, map) {
   if (Array.isArray(obj)) return obj.map(v => swapRefs(v, map));
   if (obj && typeof obj === "object") {
@@ -231,7 +245,7 @@ $("load").addEventListener("click", async () => {
     const bundle = JSON.parse(text);
     const map = {};               // urn:uuid -> Type/id
     const byIdent = {};           // identifier value -> saved resource
-    let created = 0, existed = 0, duplicates = 0;
+    let created = 0, existed = 0, updated = 0, duplicates = 0;
 
     for (const entry of bundle.entry) {
       const res = swapRefs(entry.resource, map);
@@ -240,7 +254,16 @@ $("load").addEventListener("click", async () => {
       const found = await findByIdentifier(type, idv);
       let saved;
       if (found.length > 1) { duplicates++; logLine("DUPLICATE " + type + " " + idv); saved = found[0]; }
-      else if (found.length === 1) { existed++; saved = found[0]; }
+      else if (found.length === 1 && sameContent(res, found[0])) { existed++; saved = found[0]; }
+      else if (found.length === 1) {
+        // Already there but out of date: replace it in place (same server ID).
+        saved = await client.request({
+          url: type + "/" + found[0].id, method: "PUT", body: JSON.stringify({ ...res, id: found[0].id }),
+          headers: { "Content-Type": "application/fhir+json" }
+        });
+        updated++;
+        logLine("updated " + type + "/" + saved.id + "  " + idv);
+      }
       else {
         saved = await client.request({
           url: type, method: "POST", body: JSON.stringify(res),
@@ -252,7 +275,7 @@ $("load").addEventListener("click", async () => {
       map[entry.fullUrl] = type + "/" + saved.id;
       byIdent[idv] = saved;
     }
-    result(duplicates === 0, `Records: ${created} created, ${existed} already there, ${duplicates} duplicates`);
+    result(duplicates === 0, `Records: ${created} created, ${updated} updated, ${existed} already up to date, ${duplicates} duplicates`);
     await verify(byIdent);
     $("next").hidden = false;
   } catch (e) {

@@ -14,7 +14,7 @@ Field to FHIR shows EMS providers what happened to the patients they transported
 
 ## Running the demo
 
-1. Open `admin-load.html` (https://olivia-h26.github.io/field-to-fhir/admin-load.html) and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates only the records that are missing.
+1. Open `admin-load.html` (https://olivia-h26.github.io/field-to-fhir/admin-load.html) and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates the records that are missing and updates any that are out of date. It never creates duplicates.
 2. Open `launch.html` and select **Sign in**.
 
 ## Files
@@ -39,12 +39,12 @@ user/Organization.rs user/Practitioner.rs user/PractitionerRole.rs
 user/Patient.rs user/Encounter.rs user/Condition.rs user/Observation.rs
 ```
 
-Data loader (`admin-load.html`), create, read and search, with no update or delete:
+Data loader (`admin-load.html`), create, read, update and search, with no delete. Update lets a reload bring records already in the sandbox up to date with the data file:
 
 ```text
 openid fhirUser
-user/Organization.crs user/Practitioner.crs user/PractitionerRole.crs user/Patient.crs
-user/Encounter.crs user/Condition.crs user/Observation.crs user/Procedure.crs
+user/Organization.crus user/Practitioner.crus user/PractitionerRole.crus user/Patient.crus
+user/Encounter.crus user/Condition.crus user/Observation.crus user/Procedure.crus
 ```
 
 ## Privacy, confidentiality and security
