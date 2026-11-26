@@ -22,6 +22,10 @@
     #signin:hover { background: #1d4ed8; }
     #signin:disabled { opacity: .6; cursor: wait; }
     #error { color: #b91c1c; }
+    .door { display: block; max-width: 420px; margin: 0 auto 1.2rem; padding: .9rem 1.2rem; border-radius: 10px; border: 2px solid #0f3d63; color: #0f3d63; background: #fff; text-decoration: none; font-weight: 600; font-size: 1.05rem; }
+    .door:hover { background: #eef4fb; }
+    .door small { display: block; font-weight: 400; font-size: .85rem; color: #4b5563; margin-top: .2rem; }
+    .step { font-size: .85rem; color: #6b7280; margin: 0 0 .4rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
     @media (max-width: 700px) { .hero img { width: 65vw; height: 65vw; border-radius: 13vw; } }
   </style>
 </head>
@@ -38,6 +42,9 @@
     </div>
 
     <div class="cta">
+      <p class="step">Step 1 &middot; Admin</p>
+      <a class="door" href="admin-load.html" title="Load the demo data into the SMART sandbox (it resets nightly)">Admin: Dr. Albertine Orn, EMS Organization Medical Director<small>Load the demo data first</small></a>
+      <p class="step">Step 2 &middot; Dashboard</p>
       <button id="signin" type="button">Sign in</button>
       <p id="error" role="alert" hidden></p>
     </div>
