@@ -69,10 +69,15 @@ const isAdmin = u => !!u && u.resourceType === "Practitioner" &&
   (u.identifier || []).some(i => i.system === "http://hl7.org/fhir/sid/us-npi" && i.value === ADMIN_NPI);
 let adminOK = false;
 
-// The admin door has its own sandbox settings: the Practitioner list to pick Dr. Albertine Orn from,
-// and a scope cap, so the sandbox refuses any permission beyond the ones listed in SCOPES.
+// The admin door has its own sandbox settings:
+// - a provider list, so the Practitioner list on the sandbox's login page shows Dr. Albertine Orn and no one
+//   else. The sandbox skips the list when it has one ID, so a second ID that matches no practitioner keeps
+//   the list on screen with her alone in it.
+// - a scope cap, so the sandbox refuses any permission beyond the ones listed in SCOPES.
 // Same settings as js/smart-config.js otherwise: provider standalone launch, public client, PKCE required.
-const ADMIN_LAUNCH = btoa(JSON.stringify([2, "", "", "MANUAL", 0, 0, 0, SCOPES, "", "", "", "", "", "", 0, 2, ""]))
+const ADMIN_PRACTITIONER_ID = "52919099-6a7a-442c-b0d5-2b02c0dd4b74";
+const ADMIN_PROVIDERS = ADMIN_PRACTITIONER_ID + ",no-such-practitioner";
+const ADMIN_LAUNCH = btoa(JSON.stringify([2, "", ADMIN_PROVIDERS, "MANUAL", 0, 0, 0, SCOPES, "", "", "", "", "", "", 0, 2, ""]))
   .replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
 const ADMIN_ISSUER = "https://launch.smarthealthit.org/v/r4/sim/" + ADMIN_LAUNCH + "/fhir";
 
