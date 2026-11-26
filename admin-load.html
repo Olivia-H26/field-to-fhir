@@ -69,6 +69,14 @@ const isAdmin = u => !!u && u.resourceType === "Practitioner" &&
   (u.identifier || []).some(i => i.system === "http://hl7.org/fhir/sid/us-npi" && i.value === ADMIN_NPI);
 let adminOK = false;
 
+// The admin door has its own sandbox settings: the sandbox signs in Dr. Albertine Orn directly
+// (no practitioner list to pick from) and refuses any permission beyond the ones listed in SCOPES.
+// Same settings as js/smart-config.js otherwise: provider standalone launch, public client, PKCE required.
+const ADMIN_PRACTITIONER_ID = "52919099-6a7a-442c-b0d5-2b02c0dd4b74";
+const ADMIN_LAUNCH = btoa(JSON.stringify([2, "", ADMIN_PRACTITIONER_ID, "MANUAL", 0, 0, 0, SCOPES, "", "", "", "", "", "", 0, 2, ""]))
+  .replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+const ADMIN_ISSUER = "https://launch.smarthealthit.org/v/r4/sim/" + ADMIN_LAUNCH + "/fhir";
+
 const $ = id => document.getElementById(id);
 const logLine = msg => { $("log").textContent += msg + "\n"; $("log").scrollTop = 1e9; };
 const results = [];
@@ -91,7 +99,7 @@ $("signin").addEventListener("click", () => {
   if (bad.length) { $("who").textContent = "Sign-in stopped: this page does not accept " + bad.join(", ") + " in its address."; return; }
   FHIR.oauth2.authorize({
     clientId: CLIENT_ID, scope: SCOPES, redirectUri: REDIRECT_URI,
-    iss: window.EMS_SMART_ISSUER, pkceMode: "required"
+    iss: ADMIN_ISSUER, pkceMode: "required"
   }).catch(e => { $("who").textContent = "Sign-in could not start: " + e.message; });
 });
 
