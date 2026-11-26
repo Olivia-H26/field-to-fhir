@@ -89,6 +89,8 @@
   .hosps .kicker { color: #1e40af; }
   footer { text-align: center; padding: 1rem; font-size: .78rem; color: #6b7280; }
   footer a { color: #1d4ed8; }
+  /* Standards details (codes, profiles, scopes) stay in the page and show when the user turns them on. */
+  body:not(.show-std) .std, body:not(.show-std) .codeinfo, body:not(.show-std) #scopes { display: none; }
 </style>
 </head>
 <body>
@@ -97,7 +99,7 @@
     <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
     <div>
       <h1>Field to FHIR</h1>
-      <div class="tag">Field Impression &rarr; Hospital Disposition</div>
+      <div class="tag">Field Impression &rarr; Hospital Discharge Disposition</div>
     </div>
   </div>
   <div class="chips">
@@ -106,7 +108,7 @@
     <span class="chip">US Core 6.1.0</span>
     <span class="chip ro">Read-only</span>
   </div>
-  <div class="right"><span class="who" id="who">Signing in…</span> <button id="signout" type="button">Sign out</button></div>
+  <div class="right"><span class="who" id="who">Signing in…</span> <button id="stdtoggle" type="button" aria-pressed="false">Show standards</button> <button id="signout" type="button">Sign out</button></div>
 </header>
 
 <div class="wrap">
@@ -131,7 +133,7 @@
 <footer>
   Fictional test data · FHIR 4.0.1 · US Core 6.1.0 · SMART App Launch 2.2.0
   <br><span id="scopes"></span>
-  <br><a href="admin-load.html">Admin: load demo data</a> (run before each demo; the sandbox resets nightly)
+  <br><a href="admin-load.html" title="Run before each demo; the sandbox resets nightly">Admin: load demo data</a>
 </footer>
 
 <script>
@@ -158,6 +160,11 @@ if (!qs.has("code") && !qs.has("state") && !sessionStorage.getItem("SMART_KEY"))
   location.replace(new URL("launch.html", location.href).href);
 }
 
+$("stdtoggle").addEventListener("click", () => {
+  const on = document.body.classList.toggle("show-std");
+  $("stdtoggle").textContent = on ? "Hide standards" : "Show standards";
+  $("stdtoggle").setAttribute("aria-pressed", String(on));
+});
 $("signout").addEventListener("click", () => {
   sessionStorage.clear();
   location.replace(new URL("launch.html", location.href).href);
@@ -204,6 +211,8 @@ const HEADINGS = {
 };
 const tagOf = r => ((r && r.identifier) || []).find(i => i.system === ID_SYS) || {};
 const heading = o => HEADINGS[tagOf(o).value] || clean(o && o.name);
+// The easter-egg heading shows with the standards details; the organization's real name is the visible title.
+const eggTag = o => HEADINGS[tagOf(o).value] ? `<span class="std">${esc(HEADINGS[tagOf(o).value])}</span>` : "";
 // Loop-logo bullet: the app's loop ring with initials inside.
 const loopAvatar = (letters, color) => `<svg class="avatar" viewBox="0 0 40 40" aria-hidden="true">
   <path d="M33 26a14 14 0 1 1-1-14" fill="none" stroke="${color || "#2563eb"}" stroke-width="3.2" stroke-linecap="round"/>
@@ -274,16 +283,16 @@ async function loadAgency() {
     hospitals.filter(Boolean).forEach(h => cache.set("Organization/" + h.id, Promise.resolve(h)));
     const type = code0((agency.type || [])[0]);
     $("agency").children[1].innerHTML = `
-      <h2>${esc(heading(agency))}</h2>
-      <div class="muted">${esc(clean(agency.name))} · ${esc(type.display || "")}${type.code ? " · NUCC " + esc(type.code) : ""} · ${esc(address(agency))}${phone(agency) ? " · " + esc(phone(agency)) : ""}</div>
-      <div>${fhirTag}${profileTag(agency)}${readTag("Organization")}</div>`;
+      <h2>${esc(clean(agency.name))}</h2>
+      <div class="muted">${esc(type.display || "")}${type.code ? '<span class="codeinfo"> · NUCC ' + esc(type.code) + "</span>" : ""} · ${esc(address(agency))}${phone(agency) ? " · " + esc(phone(agency)) : ""}</div>
+      <div>${eggTag(agency)}${fhirTag}${profileTag(agency)}${readTag("Organization")}</div>`;
     hospitalList = hospitals.filter(Boolean);
     $("hospitals").innerHTML = hospitalList.map(h => `
       <button type="button" class="panel" data-hosp="${esc(h.id)}" title="Show only patients brought to this hospital">
         <div class="kicker">Receiving hospital</div>
-        <h3 style="margin:.2rem 0">${esc(heading(h))}</h3>
-        <div class="muted">${esc(clean(h.name))}<br>${esc(address(h))}${phone(h) ? "<br>" + esc(phone(h)) : ""}</div>
-        <div>${fhirTag}${profileTag(h)}${readTag("Organization")}</div>
+        <h3 style="margin:.2rem 0">${esc(clean(h.name))}</h3>
+        <div class="muted">${esc(address(h))}${phone(h) ? "<br>" + esc(phone(h)) : ""}</div>
+        <div>${eggTag(h)}${fhirTag}${profileTag(h)}${readTag("Organization")}</div>
       </button>`).join("");
     document.querySelectorAll("#hospitals button").forEach(b => b.addEventListener("click", () =>
       setHospital(hospitalFilter === b.dataset.hosp ? null : b.dataset.hosp)));
@@ -378,7 +387,7 @@ function setHospital(id) {
   const h = hospitalList.find(x => x.id === id);
   $("filter").hidden = !id;
   if (id) {
-    $("filter").innerHTML = "Showing " + shown + " of your calls brought to <b>" + esc(heading(h)) + '</b><a id="showall">All my calls</a>';
+    $("filter").innerHTML = "Showing " + shown + " of your calls brought to <b>" + esc(clean(h.name)) + '</b><a id="showall">All my calls</a>';
     document.getElementById("showall").addEventListener("click", () => setHospital(null));
   }
   const active = patientRows.find(r => r.button.classList.contains("active"));
@@ -414,10 +423,10 @@ async function compareCodes(emsCode, hospCode) {
   } catch (e) { return "unknown"; }
 }
 const COMPARE = {
-  "equivalent": ["ok", "&#9989; Same: the hospital confirmed the EMS field impression."],
-  "subsumes": ["info", "&#128309; More specific: the EMS impression was on track, and the hospital narrowed it to a more specific diagnosis."],
-  "subsumed-by": ["info", "&#128309; Related: the hospital recorded a broader diagnosis than the EMS impression."],
-  "not-subsumed": ["bad", "&#128308; Different: the hospital found a different condition than the EMS field impression."],
+  "equivalent": ["ok", "Same: the hospital confirmed the EMS field impression."],
+  "subsumes": ["info", "More specific: the EMS impression was on track, and the hospital narrowed it to a more specific diagnosis."],
+  "subsumed-by": ["info", "Related: the hospital recorded a broader diagnosis than the EMS impression."],
+  "not-subsumed": ["bad", "Different: the hospital found a different condition than the EMS field impression."],
   "unknown": ["warn", "Could not check the codes with the terminology server. Compare the two diagnoses above."]
 };
 const CONF_SYS = "http://terminology.hl7.org/CodeSystem/v3-Confidentiality";  // security label system for "restricted"
@@ -443,13 +452,13 @@ function crewHtml(members) {
         <span class="pill">${lead ? "Lead on this call" : "Partner on this call"}</span>
         ${partners.length ? `<div class="partner">Partner for this call: <b>${esc(partners.join(", "))}</b></div>` : ""}
         <div>${profileTag(m.prac)}${profileTag(m.role)}</div>
-        <div class="sub">${nucc.code ? "NUCC " + esc(nucc.code) : ""}${fn.code ? " · SNOMED " + esc(fn.code) : ""}</div>
+        <div class="sub codeinfo">${nucc.code ? "NUCC " + esc(nucc.code) : ""}${fn.code ? " · SNOMED " + esc(fn.code) : ""}</div>
       </div></div>`;
   }).join("");
 }
 function orgHtml(o, fallback) {
   if (!o) return `<div class="org">${esc(clean(fallback) || "—")}</div>`;
-  return `<div class="org"><b>${esc(heading(o))}</b><br>${esc(clean(o.name))}<br>${esc(address(o))}${phone(o) ? "<br>" + esc(phone(o)) : ""}<div>${profileTag(o)}</div></div>`;
+  return `<div class="org"><b>${esc(clean(o.name))}</b><br>${esc(address(o))}${phone(o) ? "<br>" + esc(phone(o)) : ""}<div>${eggTag(o)}${profileTag(o)}</div></div>`;
 }
 
 async function showCase(p, tag) {
@@ -499,18 +508,18 @@ async function showCase(p, tag) {
         <div>${fhirTag}${profileTag(p)}${readTag("Patient")}</div>
         ${tagId ? `<div class="tagbox"><div class="qr" id="qr"></div><div>
           <b>Arrived unidentified.</b> Triage tag <b>${esc(tagId)}</b> was placed at the scene.<br>
-          ${tagOk ? "&#10004; The EMS call and the hospital visit both carry this tag, so they match without a name." : "&#10006; The tag is missing from the EMS call or the hospital visit."}<br>
+          ${tagOk ? "The EMS call and the hospital visit both carry this tag, so they match without a name." : "The tag is missing from the EMS call or the hospital visit."}<br>
           ${identified ? "Identified at the hospital as <b>" + esc(nameOf(identified)) + "</b> (linked record " + profileTag(identified) + ")." : "Not yet identified."}
-          <div class="muted">The QR holds only the triage tag ID: no name and no health information.</div></div></div>` : ""}
+          <div class="muted">The QR holds only the triage tag identifier (the tag ID and its identifier system): no name and no health information.</div></div></div>` : ""}
       </div>
       <div class="banner ${linked ? "ok" : "bad"}">${linked
-        ? "&#10004; The hospital visit is linked to this EMS impression: the EMS impression prompted the visit."
-        : "&#10006; No link found from the hospital visit back to the EMS impression."}</div>
+        ? "The hospital visit is linked to this EMS impression: the EMS impression prompted the visit."
+        : "No link found from the hospital visit back to the EMS impression."}</div>
       <div class="cols">
         <div class="panel ems">
           <h3>EMS field impression</h3>
           <div class="dx">${esc(emsDx ? ccText(emsDx.code) : "Not found")}</div>
-          ${emsDx ? `<span class="pill prov">${esc(ver(emsDx))}</span><span class="pill">SNOMED ${esc(code0(emsDx.code).code)}</span><div>${profileTag(emsDx)}${profileTag(emsEnc)}</div>` : ""}
+          ${emsDx ? `<span class="pill prov">${esc(ver(emsDx))}</span><span class="pill codeinfo">SNOMED ${esc(code0(emsDx.code).code)}</span><div>${profileTag(emsDx)}${profileTag(emsEnc)}</div>` : ""}
           <dl>
             <dt>Call time</dt><dd>${esc(emsEnc ? when(emsEnc.period && emsEnc.period.start) : "—")}</dd>
             <dt>Handed off</dt><dd>${esc(emsEnc ? when(emsEnc.period && emsEnc.period.end) : "—")}</dd>
@@ -523,7 +532,7 @@ async function showCase(p, tag) {
         <div class="panel hosp">
           <h3>Hospital diagnosis</h3>
           <div class="dx">${esc(hospDx ? ccText(hospDx.code) : "Not found")}</div>
-          ${hospDx ? `<span class="pill conf">${esc(ver(hospDx))}</span><span class="pill">SNOMED ${esc(code0(hospDx.code).code)}</span><div>${profileTag(hospDx)}${profileTag(hospEnc)}</div>` : ""}
+          ${hospDx ? `<span class="pill conf">${esc(ver(hospDx))}</span><span class="pill codeinfo">SNOMED ${esc(code0(hospDx.code).code)}</span><div>${profileTag(hospDx)}${profileTag(hospEnc)}</div>` : ""}
           <dl>
             <dt>Arrived</dt><dd>${esc(hospEnc ? when(hospEnc.period && hospEnc.period.start) : "—")}</dd>
             <dt>Visit type</dt><dd>${esc(hospEnc ? (hospEnc.class && hospEnc.class.display) : "—")}</dd>
@@ -535,13 +544,12 @@ async function showCase(p, tag) {
           ${orgHtml(hospital, hospEnc && hospEnc.serviceProvider && hospEnc.serviceProvider.display)}
         </div>
       </div>
-      <div class="banner ${COMPARE[outcome] ? COMPARE[outcome][0] : "warn"}">${(COMPARE[outcome] || COMPARE.unknown)[1]}
-        <small>Compared with the SNOMED CT hierarchy on the HL7 terminology server (FHIR $subsumes).</small></div>
+      <div class="banner ${COMPARE[outcome] ? COMPARE[outcome][0] : "warn"}">${(COMPARE[outcome] || COMPARE.unknown)[1]}</div>
       <div class="panel" style="margin-top:1rem">
         <h3>Vital signs</h3>
         <table>
-          <thead><tr><th>Vital</th><th>EMS (on scene)</th><th>Hospital (arrival)</th><th>US Core 6.1.0 profile</th></tr></thead>
-          <tbody>${VITALS.map(d => `<tr><td>${d.label}</td><td>${esc(vitalFor(emsObs, d))}</td><td>${esc(vitalFor(hospObs, d))}</td><td>${profileTag(findVital(emsObs, d) || findVital(hospObs, d))}</td></tr>`).join("")}</tbody>
+          <thead><tr><th>Vital</th><th>EMS (on scene)</th><th>Hospital (arrival)</th><th class="codeinfo">US Core 6.1.0 profile</th></tr></thead>
+          <tbody>${VITALS.map(d => `<tr><td>${d.label}</td><td>${esc(vitalFor(emsObs, d))}</td><td>${esc(vitalFor(hospObs, d))}</td><td class="codeinfo">${profileTag(findVital(emsObs, d) || findVital(hospObs, d))}</td></tr>`).join("")}</tbody>
         </table>
       </div>`;
     if (tagId && window.qrcode) {

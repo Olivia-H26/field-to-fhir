@@ -47,13 +47,13 @@
     <div class="in">
     <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
     <div><h1>Field to FHIR</h1>
-    <p class="tagline">Closing the loop between EMS field impressions and hospital dispositions</p></div>
+    <p class="tagline">Closing the loop between EMS field impressions and hospital discharge dispositions</p></div>
     </div>
   </section>
 
   <div class="wrap">
     <div class="card">
-      <p class="purpose"><b>Field to FHIR</b> helps <b>EMS professionals</b> <b>see what happened to their patients after hospital handoff</b> by bringing the EMS field impression, crew and vital signs together with the hospital's diagnosis and outcome in one view.</p>
+      <p class="purpose">Field to FHIR helps EMS professionals see what happened to their patients after hospital handoff by bringing the EMS field impression, crew and vital signs together with the hospital's diagnosis and outcome in one view.</p>
     </div>
 
     <div class="steps">
@@ -64,7 +64,7 @@
 
     <div class="cta">
       <button id="signin" type="button">Sign in</button>
-      <p class="note" id="status" role="status">EMS providers sign in through SMART App Launch 2.2.0. This door only reads data. It never changes it.</p>
+      <p class="note" id="status" role="status">EMS providers sign in through SMART App Launch 2.2.0. This app only reads data. It never changes it.</p>
       <p id="error" role="alert" hidden></p>
       <p><a href="tour.html" style="color:#2563eb;font-weight:600">Take a tour: see what the app does before you sign in &rarr;</a></p>
     </div>
@@ -79,12 +79,12 @@
 
   <footer>
     Fictional test data for the HL7 Break the Code program.
-    <br><a href="admin-load.html">Admin: load demo data</a> (run before each demo; the sandbox resets nightly)
+    <br><a href="admin-load.html" title="Run before each demo; the sandbox resets nightly">Admin: load demo data</a>
   </footer>
 
   <script>
     "use strict";
-    // Dashboard door: SMART App Launch 2.2.0, standalone provider launch, read and search only.
+    // Dashboard sign-in: SMART App Launch 2.2.0, standalone provider launch, read and search only.
     const CLIENT_ID = "my_web_app";
     const REDIRECT_URI = new URL("index.html", window.location.href).href;
     const SCOPES = [
