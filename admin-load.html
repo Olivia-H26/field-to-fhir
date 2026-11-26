@@ -44,6 +44,8 @@ Synthetic data only: never send real patient data to the public validator.</p>
 <div class="card">
   <strong>Results</strong>
   <ul id="results"><li class="muted">Nothing run yet.</li></ul>
+  <p id="next" hidden><button id="tocrew" type="button">Next: EMS crew sign-in &rarr;</button>
+  <span class="muted">Signs the admin out, then opens the crew sign-in page.</span></p>
 </div>
 
 <div class="card">
@@ -135,6 +137,13 @@ if (params.has("code") || params.has("state")) {
     $("signin").disabled = true;
   }).catch(e => { $("who").textContent = "Sign-in failed: " + e.message; });
 }
+
+// After loading, go on to the crew sign-in. The admin's sign-in is cleared first, so the crew page
+// never reuses the admin's permissions.
+$("tocrew").addEventListener("click", () => {
+  sessionStorage.clear();
+  location.replace(new URL("launch.html", location.href).href);
+});
 
 // The sandbox briefly caches search results, so every search asks for a fresh answer.
 async function findByIdentifier(type, value) {
@@ -245,6 +254,7 @@ $("load").addEventListener("click", async () => {
     }
     result(duplicates === 0, `Records: ${created} created, ${existed} already there, ${duplicates} duplicates`);
     await verify(byIdent);
+    $("next").hidden = false;
   } catch (e) {
     result(false, "Loading stopped: " + e.message);
     logLine(String(e.stack || e));
