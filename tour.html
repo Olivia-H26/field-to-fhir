@@ -37,7 +37,7 @@
 <body>
   <header><div class="in">
     <img src="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" alt="Field to FHIR badge">
-    <div><h1>Take a tour of Field to FHIR</h1><p>What the app is for and what it shows</p></div>
+    <div><h1>Take a tour of Field to FHIR</h1><p>What the app is for</p></div>
     <a class="back" href="launch.html">&larr; Back to the app</a>
   </div></header>
 
@@ -45,32 +45,6 @@
     <div class="card">
       <h2>Mission</h2>
       <p class="filled">Field to FHIR helps EMS professionals see what happened to their patients after hospital handoff by bringing the EMS field impression, crew and vital signs together with the hospital's diagnosis and outcome in one view.</p>
-    </div>
-
-    <div class="card">
-      <h2>Vision</h2>
-      <p class="filled">I'd like the app to compare each EMS field impression with the hospital's final diagnosis so an EMS crew can learn whether their impression was right and improve their care.</p>
-    </div>
-
-    <div class="card">
-      <h2>What the comparison shows</h2>
-      <p class="src">The dashboard compares the EMS and hospital diagnosis codes.</p>
-      <table>
-        <tr><th>Result</th><th>Meaning</th><th>Example in the test data</th></tr>
-        <tr><td>Same</td><td>The hospital confirmed the EMS field impression.</td><td>Sepsis &rarr; sepsis</td></tr>
-        <tr><td>More specific</td><td>The EMS impression was on track; the hospital narrowed it.</td><td>Myocardial infarction &rarr; acute myocardial infarction</td></tr>
-        <tr><td>Different</td><td>The hospital found a different condition.</td><td>Suspected stroke &rarr; low blood sugar (a stroke mimic)</td></tr>
-      </table>
-    </div>
-
-    <div class="card">
-      <h2>Privacy and patient identity</h2>
-      <table>
-        <tr><th>Situation</th><th>How the app handles it</th><th>Standard used</th></tr>
-        <tr><td>Sensitive hospital diagnosis (substance use)</td><td>The EMS side shows normally. The sensitive diagnosis is never requested or shown: the dashboard asks only how many restricted diagnoses exist and says "Restricted diagnosis. The hospital marked an additional diagnosis as restricted. It is not shown here."</td><td>FHIR security labels (<code>meta.security</code>): restricted, substance-use sensitivity</td></tr>
-        <tr><td>Unresponsive patient with no ID (mass casualty incident)</td><td>A temporary alias name, as a registration system would assign (never "John Doe"), gender recorded as unknown rather than assumed, and a QR triage tag that holds only the triage tag identifier (the tag ID and its identifier system). The EMS call and the hospital visit carry the same tag, so the outcome matches without a name. Once identified, the alias record points to the hospital's identified record (<code>Patient.link</code>, type <code>replaced-by</code>), which marks the alias as the duplicate.</td><td>US Core 6.1.0 Patient (<code>name.use = temp</code>, <code>gender = unknown</code>), <code>identifier</code>, <code>Patient.link</code>; AHIMA naming guidance</td></tr>
-        <tr><td>All test data</td><td>Fictional people and places only, marked synthetic behind the scenes.</td><td>HIPAA minimum-necessary idea: read-only access</td></tr>
-      </table>
     </div>
 
     <div class="cta"><a href="launch.html">Go to sign-in</a></div>
