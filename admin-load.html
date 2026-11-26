@@ -157,6 +157,24 @@ async function findByIdentifier(type, value) {
   return (b.entry || []).map(e => e.resource);
 }
 
+// Remove links that still point inside the data file (urn:uuid:), i.e. to records not created yet.
+function dropUnresolved(obj) {
+  const bad = v => v && typeof v === "object" && typeof v.reference === "string" && v.reference.startsWith("urn:uuid:");
+  const holdsBad = v => bad(v) || (v && typeof v === "object" && !Array.isArray(v) && Object.values(v).some(bad));
+  if (Array.isArray(obj)) return obj.filter(v => !holdsBad(v)).map(dropUnresolved);
+  if (obj && typeof obj === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (holdsBad(v)) continue;
+      const w = dropUnresolved(v);
+      if (Array.isArray(w) && !w.length && Array.isArray(v) && v.length) continue;
+      out[k] = w;
+    }
+    return out;
+  }
+  return obj;
+}
+
 // Compare a record in the sandbox with the data file, ignoring what the server adds itself.
 function canon(o) {
   if (Array.isArray(o)) return o.map(canon);
@@ -247,32 +265,43 @@ $("load").addEventListener("click", async () => {
     const byIdent = {};           // identifier value -> saved resource
     let created = 0, existed = 0, updated = 0, duplicates = 0;
 
+    // Pass 1, in file order: find each record, or create it if missing. A record can point to one that
+    // comes later in the file (a hospital visit to its discharge diagnosis), so links to records not yet
+    // on the server are held back here and filled in by pass 2.
+    const savedNow = {};          // identifier value -> record as it is on the server now
+    const createdNow = new Set();
+    for (const entry of bundle.entry) {
+      const type = entry.resource.resourceType;
+      const idv = entry.resource.identifier[0].value;
+      const found = await findByIdentifier(type, idv);
+      let saved;
+      if (found.length > 1) { duplicates++; logLine("DUPLICATE " + type + " " + idv); saved = found[0]; }
+      else if (found.length === 1) { saved = found[0]; }
+      else {
+        saved = await client.request({
+          url: type, method: "POST", body: JSON.stringify(dropUnresolved(swapRefs(entry.resource, map))),
+          headers: { "Content-Type": "application/fhir+json" }
+        });
+        created++; createdNow.add(idv);
+        logLine("created " + type + "/" + saved.id + "  " + idv);
+      }
+      map[entry.fullUrl] = type + "/" + saved.id;
+      savedNow[idv] = saved;
+    }
+    // Pass 2: every record now has a server ID, so each one can be compared in full with the data file.
+    // Out of date (including links held back in pass 1): replace it in place, same server ID.
     for (const entry of bundle.entry) {
       const res = swapRefs(entry.resource, map);
       const type = res.resourceType;
       const idv = res.identifier[0].value;
-      const found = await findByIdentifier(type, idv);
-      let saved;
-      if (found.length > 1) { duplicates++; logLine("DUPLICATE " + type + " " + idv); saved = found[0]; }
-      else if (found.length === 1 && sameContent(res, found[0])) { existed++; saved = found[0]; }
-      else if (found.length === 1) {
-        // Already there but out of date: replace it in place (same server ID).
-        saved = await client.request({
-          url: type + "/" + found[0].id, method: "PUT", body: JSON.stringify({ ...res, id: found[0].id }),
-          headers: { "Content-Type": "application/fhir+json" }
-        });
-        updated++;
-        logLine("updated " + type + "/" + saved.id + "  " + idv);
-      }
-      else {
-        saved = await client.request({
-          url: type, method: "POST", body: JSON.stringify(res),
-          headers: { "Content-Type": "application/fhir+json" }
-        });
-        created++;
-        logLine("created " + type + "/" + saved.id + "  " + idv);
-      }
-      map[entry.fullUrl] = type + "/" + saved.id;
+      const current = savedNow[idv];
+      if (sameContent(res, current)) { if (!createdNow.has(idv)) existed++; byIdent[idv] = current; continue; }
+      const saved = await client.request({
+        url: type + "/" + current.id, method: "PUT", body: JSON.stringify({ ...res, id: current.id }),
+        headers: { "Content-Type": "application/fhir+json" }
+      });
+      if (!createdNow.has(idv)) updated++;
+      logLine((createdNow.has(idv) ? "linked " : "updated ") + type + "/" + saved.id + "  " + idv);
       byIdent[idv] = saved;
     }
     result(duplicates === 0, `Records: ${created} created, ${updated} updated, ${existed} already up to date, ${duplicates} duplicates`);
