@@ -14,7 +14,7 @@ Field to FHIR shows EMS providers what happened to the patients they transported
 
 ## Running the demo
 
-1. Open `admin-load.html` (https://olivia-h26.github.io/field-to-fhir/admin-load.html) and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates the records that are missing and updates any that are out of date. It never creates duplicates.
+1. Open `admin-load.html` (https://olivia-h26.github.io/field-to-fhir/admin-load.html) and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates the records that are missing and updates any that are out of date. Running it again does not create duplicates.
 2. Open `launch.html` and select **Sign in**.
 
 ## Files
@@ -72,6 +72,6 @@ All data is synthetic: fictional people and organizations. Never put real patien
 
 When a patient is unresponsive or has no ID, the record uses a temporary alias name (FHIR `name.use = temp`) instead of "John Doe," and gender is recorded as unknown rather than assumed.
 
-The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code. It holds only the app's sign-in address and the triage tag number (for example MI-0107, with a state prefix as NASEMSO recommends), with no name and no health information. Scanning it, with the phone camera or the dashboard's Scan triage tag button, finds the EMS call by its triage tag identifier (`Encounter?identifier=`) and opens the patient only for an EMT who was on that call; anyone else sees that it is not one of their calls.
+The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code. It holds only the app's sign-in address and the triage tag number (for example MI-0107, with a state prefix as NASEMSO recommends), with no name and no health information. Scanning it, with the phone camera or the dashboard's Scan triage tag button, asks the server only for the signed-in EMT's own calls with that triage tag identifier (`Encounter?identifier=…&participant=…`) and opens the patient if there is one. Anyone else sees that the tag is not on any of their calls, without learning whether it exists.
 
 Once the hospital identifies the patient, the alias record points to the identified record with a FHIR `Patient.link` of type `replaced-by`, which in FHIR means the alias record must no longer be used and the identified record is used in its place. The dashboard follows that link and shows the identified name.
