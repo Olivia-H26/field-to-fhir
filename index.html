@@ -98,6 +98,7 @@
   #scanner .box { background: #fff; border-radius: 12px; padding: 1rem; width: min(420px, 92vw); }
   #scanner video { width: 100%; border-radius: 8px; background: #000; display: block; }
   #scanner .row { display: flex; gap: .5rem; margin-top: .6rem; }
+  #scanner .photobtn { flex: 1; text-align: center; border: 1px solid #1d4ed8; background: #1d4ed8; color: #fff; border-radius: 8px; padding: .5rem; font-weight: 600; cursor: pointer; }
   #scanner input { flex: 1; padding: .4rem .5rem; border: 1px solid #d1d5db; border-radius: 6px; text-transform: uppercase; }
   footer { text-align: center; padding: 1rem; font-size: .78rem; color: #6b7280; }
   footer a { color: #1d4ed8; }
@@ -144,6 +145,8 @@
     <p class="muted" id="scanhint">Point the camera at the QR code on the triage tag.</p>
     <video id="scanvideo" playsinline muted></video>
     <canvas id="scancanvas" hidden></canvas>
+    <div class="row"><label class="photobtn" for="scanphoto">Take photo of tag</label>
+      <input id="scanphoto" type="file" accept="image/*" capture="environment" hidden></div>
     <div class="row"><input id="scaninput" placeholder="Or type the tag, e.g. MI-0107" maxlength="32" autocomplete="off">
       <button id="scango" type="button">Look up</button></div>
     <div class="row"><button id="scanclose" type="button">Cancel</button></div>
@@ -436,10 +439,21 @@ async function openScanner() {
   $("scanner").hidden = false;
   $("scaninput").value = "";
   $("scanhint").textContent = "Point the camera at the QR code on the triage tag.";
-  if (!navigator.mediaDevices || !window.jsQR) { $("scanhint").textContent = "Camera scanning is not available here: type the tag number."; return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.jsQR) {
+    $("scanhint").textContent = "Live camera is not available in this browser. Use Take photo of tag, or type the tag number."; return;
+  }
   try {
     scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  } catch (e) { $("scanhint").textContent = "No camera access: type the tag number."; return; }
+  } catch (e) {
+    // Some phones refuse the back-camera request but allow any camera: try once more without it.
+    if (e && e.name === "OverconstrainedError") { try { scanStream = await navigator.mediaDevices.getUserMedia({ video: true }); } catch (e2) { e = e2; } }
+    if (!scanStream) {
+      $("scanhint").textContent = (e && e.name === "NotAllowedError")
+        ? "The live camera is blocked for this site. Use Take photo of tag, or allow the camera (iPhone Safari: aA, then Website Settings, then Camera, then Allow) and try again."
+        : "The live camera could not start (" + ((e && e.name) || "unknown error") + "). Use Take photo of tag, or type the tag number.";
+      return;
+    }
+  }
   const v = $("scanvideo"), c = $("scancanvas"), ctx = c.getContext("2d", { willReadFrequently: true });
   v.srcObject = scanStream; await v.play().catch(() => {});
   const tick = () => {
@@ -454,6 +468,25 @@ async function openScanner() {
   };
   tick();
 }
+// Photo fallback: the phone's own camera takes a picture, and the QR is read from the photo.
+// This needs no live-camera permission, so it works where the live camera is blocked.
+$("scanphoto").addEventListener("change", async () => {
+  const file = $("scanphoto").files && $("scanphoto").files[0];
+  $("scanphoto").value = "";
+  if (!file) return;
+  if (!window.jsQR) { $("scanhint").textContent = "The QR reader did not load: type the tag number."; return; }
+  $("scanhint").textContent = "Reading the photo…";
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = $("scancanvas"), ctx = c.getContext("2d", { willReadFrequently: true });
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    const r = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, { inversionAttempts: "attemptBoth" });
+    if (r && r.data) { closeScanner(); lookupTag(r.data); }
+    else $("scanhint").textContent = "No QR code found in that photo. Hold the phone steady, fill the frame with the QR, and try again.";
+  } catch (e) { $("scanhint").textContent = "Could not read that photo: type the tag number."; }
+});
 $("scanbtn").addEventListener("click", openScanner);
 $("scanclose").addEventListener("click", closeScanner);
 $("scango").addEventListener("click", () => { const t = $("scaninput").value; closeScanner(); lookupTag(t); });
