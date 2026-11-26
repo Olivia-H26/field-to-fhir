@@ -127,7 +127,7 @@
 <footer>
   Fictional test data · FHIR 4.0.1 · US Core 6.1.0 · SMART App Launch 2.2.0
   <br><span id="scopes"></span>
-  <br><a href="admin-load.html" title="Run before each demo; the sandbox resets nightly">Admin: load demo data</a>
+  <br><a href="admin-load.html" title="Load the demo data">Admin: Dr. Albertine Orn, EMS Organization Medical Director</a>
 </footer>
 
 <script>
@@ -272,7 +272,7 @@ FHIR.oauth2.ready().then(async c => {
 async function loadAgency() {
   try {
     const [agency, ...hospitals] = await Promise.all([byTag("Organization", AGENCY_TAG), ...HOSPITAL_TAGS.map(t => byTag("Organization", t))]);
-    if (!agency) { $("agency").children[1].innerHTML = '<p class="muted">Agency not found: run Admin: load demo data.</p>'; return; }
+    if (!agency) { $("agency").children[1].innerHTML = '<p class="muted">Agency not found: load the demo data on the admin page.</p>'; return; }
     cache.set("Organization/" + agency.id, Promise.resolve(agency));
     hospitals.filter(Boolean).forEach(h => cache.set("Organization/" + h.id, Promise.resolve(h)));
     const type = code0((agency.type || [])[0]);
@@ -336,7 +336,7 @@ async function loadList() {
   const stat = document.getElementById("stat-pts");
   if (stat) stat.textContent = found.length;
   if (!found.length) {
-    $("list").innerHTML = '<p class="muted">No calls found for you. The sandbox resets nightly: run <a href="admin-load.html">Admin: load demo data</a>, then reload this page.</p>';
+    $("list").innerHTML = '<p class="muted">No calls found for you. Load the demo data on the <a href="admin-load.html">admin page</a>, then reload this page.</p>';
     applyHospitalScope();
     return;
   }
