@@ -19577,7 +19577,7 @@
           },
           {
             "system": "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag",
-            "value": "TAG-0107"
+            "value": "MI-0107"
           }
         ],
         "active": true,
@@ -19626,10 +19626,10 @@
           },
           {
             "system": "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag",
-            "value": "TAG-0107"
+            "value": "MI-0107"
           }
         ],
-        "active": true,
+        "active": false,
         "name": [
           {
             "use": "temp",
@@ -19684,7 +19684,7 @@
           },
           {
             "system": "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag",
-            "value": "TAG-0107"
+            "value": "MI-0107"
           }
         ],
         "status": "finished",
@@ -19873,7 +19873,7 @@
           },
           {
             "system": "https://olivia-h26.github.io/field-to-fhir/identifiers/triage-tag",
-            "value": "TAG-0107"
+            "value": "MI-0107"
           }
         ],
         "status": "finished",

@@ -103,6 +103,18 @@
       });
     }
     document.getElementById("signin").addEventListener("click", start);
+
+    // A scanned triage tag (launch.html?tag=MI-0107) is kept through sign-in, then the dashboard
+    // opens that patient if the EMT was on the call. Only a tag number is accepted; nothing else is read.
+    (function keepScannedTag() {
+      const tag = (new URLSearchParams(window.location.search).get("tag") || "").trim().toUpperCase();
+      sessionStorage.removeItem("F2F_SCAN_TAG");
+      if (!/^[A-Z0-9][A-Z0-9-]{0,31}$/.test(tag)) return;
+      sessionStorage.setItem("F2F_SCAN_TAG", tag);
+      const note = document.createElement("p");
+      note.textContent = "Sign in to open triage tag " + tag + ".";
+      document.getElementById("signin").before(note);
+    })();
   </script>
 </body>
 </html>

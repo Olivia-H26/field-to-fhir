@@ -60,7 +60,7 @@ All data is synthetic: fictional people and organizations. Never put real patien
 **Confidentiality**
 
 - Diagnoses the hospital labeled restricted (HL7 confidentiality code R) are never requested. The dashboard asks the server only how many exist, then shows a notice.
-- The triage tag QR code holds only the tag ID, with no name and no health information.
+- The triage tag QR code holds only the sign-in address and the tag number, with no name and no health information. It opens a patient only after sign-in, and only for that call's crew.
 
 **Security**
 
@@ -72,6 +72,6 @@ All data is synthetic: fictional people and organizations. Never put real patien
 
 When a patient is unresponsive or has no ID, the record uses a temporary alias name (FHIR `name.use = temp`) instead of "John Doe," and gender is recorded as unknown rather than assumed.
 
-The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code that holds only the triage tag ID (for example TAG-0107), with no name and no health information.
+The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code. It holds only the app's sign-in address and the triage tag number (for example MI-0107, with a state prefix as NASEMSO recommends), with no name and no health information. Scanning it, with the phone camera or the dashboard's Scan triage tag button, finds the EMS call by its triage tag identifier (`Encounter?identifier=`) and opens the patient only for an EMT who was on that call; anyone else sees that it is not one of their calls.
 
 Once the hospital identifies the patient, the alias record points to the identified record with a FHIR `Patient.link` of type `replaced-by`, which in FHIR means the alias record must no longer be used and the identified record is used in its place. The dashboard follows that link and shows the identified name.

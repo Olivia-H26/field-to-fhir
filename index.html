@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120'%3E%3Crect x%3D'1.5' y%3D'1.5' width%3D'117' height%3D'117' rx%3D'26' fill%3D'%23fff' stroke%3D'%2393c5fd' stroke-width%3D'3'/%3E%3Cpath d%3D'M12 64h16l7-16 10 32 8-22 6 6h7' fill%3D'none' stroke%3D'%23ea580c' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Cpath d%3D'M73 64c16 0 28-9 28-22s-12-20-25-20-23 9-23 19' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round'/%3E%3Cpath d%3D'M46 36l7 7 7-7' fill%3D'none' stroke%3D'%232563eb' stroke-width%3D'6' stroke-linecap%3D'round' stroke-linejoin%3D'round'/%3E%3Ctext x%3D'60' y%3D'104' text-anchor%3D'middle' fill%3D'%231e3a8a' font-family%3D'system-ui,sans-serif' font-size%3D'14' font-weight%3D'600'%3EField to FHIR%3C/text%3E%3C/svg%3E" type="image/svg+xml">
 <script src="https://cdn.jsdelivr.net/npm/fhirclient@3.0.1/bundle/fhir-client.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
   * { box-sizing: border-box; }
   body { font-family: system-ui, sans-serif; margin: 0; color: #1f2937; background: #f1f5f9; }
@@ -88,6 +89,16 @@
   @media (max-width: 820px) { .hosps { grid-template-columns: 1fr; } }
   .hosps .panel { border-top: 4px solid #1d4ed8; }
   .hosps .kicker { color: #1e40af; }
+  .scanbar { display: flex; gap: .5rem; align-items: center; margin: 0 0 .6rem; flex-wrap: wrap; }
+  .scanbar button { border: 1px solid #1d4ed8; color: #1d4ed8; background: #fff; border-radius: 8px; padding: .35rem .8rem; cursor: pointer; font-weight: 600; }
+  #scanmsg { margin: 0 0 .6rem; font-size: .85rem; }
+  #scanmsg.bad { color: #b91c1c; } #scanmsg.ok { color: #166534; }
+  #scanner { position: fixed; inset: 0; background: rgba(15,23,42,.85); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  #scanner[hidden] { display: none; }
+  #scanner .box { background: #fff; border-radius: 12px; padding: 1rem; width: min(420px, 92vw); }
+  #scanner video { width: 100%; border-radius: 8px; background: #000; display: block; }
+  #scanner .row { display: flex; gap: .5rem; margin-top: .6rem; }
+  #scanner input { flex: 1; padding: .4rem .5rem; border: 1px solid #d1d5db; border-radius: 6px; text-transform: uppercase; }
   footer { text-align: center; padding: 1rem; font-size: .78rem; color: #6b7280; }
   footer a { color: #1d4ed8; }
   body:not(.show-std) .std, body:not(.show-std) .codeinfo, body:not(.show-std) #scopes { display: none; }
@@ -117,11 +128,26 @@
   <main>
     <section class="panel">
       <h3>My EMS patients</h3>
+      <div class="scanbar"><button id="scanbtn" type="button">Scan triage tag</button>
+        <span class="muted">Opens the patient from one of your calls.</span></div>
+      <p id="scanmsg" role="status" hidden></p>
       <div class="filter" id="filter" hidden></div>
       <div class="list" id="list"><p class="muted">Loading…</p></div>
     </section>
     <section id="detail"></section>
   </main>
+</div>
+
+<div id="scanner" hidden role="dialog" aria-label="Scan triage tag">
+  <div class="box">
+    <strong>Scan triage tag</strong>
+    <p class="muted" id="scanhint">Point the camera at the QR code on the triage tag.</p>
+    <video id="scanvideo" playsinline muted></video>
+    <canvas id="scancanvas" hidden></canvas>
+    <div class="row"><input id="scaninput" placeholder="Or type the tag, e.g. MI-0107" maxlength="32" autocomplete="off">
+      <button id="scango" type="button">Look up</button></div>
+    <div class="row"><button id="scanclose" type="button">Cancel</button></div>
+  </div>
 </div>
 
 <footer>
@@ -152,6 +178,11 @@ const qs = new URLSearchParams(location.search);
 if (!qs.has("code") && !qs.has("state") && !sessionStorage.getItem("SMART_KEY")) {
   location.replace(new URL("launch.html", location.href).href);
 }
+
+// A triage tag scanned with the phone camera arrives through launch.html?tag=..., which keeps it
+// through sign-in. It is looked up once the signed-in EMT's own calls have loaded.
+let pendingTag = sessionStorage.getItem("F2F_SCAN_TAG");
+sessionStorage.removeItem("F2F_SCAN_TAG");
 
 $("signout").addEventListener("click", () => {
   sessionStorage.clear();
@@ -331,6 +362,7 @@ async function loadList() {
   if (!found.length) {
     $("list").innerHTML = '<p class="muted">No calls found for you.</p>';
     applyHospitalScope();
+    if (pendingTag) { const t = pendingTag; pendingTag = null; lookupTag(t); }
     return;
   }
   $("list").innerHTML = "";
@@ -345,8 +377,87 @@ async function loadList() {
   });
   applyHospitalScope();
   setHospital(hospitalFilter);
-  openRow(patientRows[0]);   // most recent call opens automatically
+  if (pendingTag) { const t = pendingTag; pendingTag = null; lookupTag(t); }
+  else openRow(patientRows[0]);   // most recent call opens automatically
 }
+
+// ---- Triage tag scan ----
+// The tag number is matched the way patient tracking systems do it: by the triage tag identifier on the
+// encounter (US Core Encounter.identifier, searched with Encounter?identifier=system|value), read-only
+// under the dashboard's user/Encounter.rs scope. A case opens only if the signed-in EMT is on the
+// crew of that EMS call.
+const TAG_RE = /^[A-Z0-9][A-Z0-9-]{0,31}$/;
+const scanLink = tag => new URL("launch.html?tag=" + encodeURIComponent(tag), location.href).href;
+function tagFromScan(text) {
+  let t = String(text || "").trim();
+  try { const u = new URL(t); if (u.searchParams.get("tag")) t = u.searchParams.get("tag"); } catch (e) { /* plain text */ }
+  t = t.toUpperCase();
+  return TAG_RE.test(t) ? t : null;
+}
+function scanMessage(text, ok) {
+  const m = $("scanmsg");
+  m.hidden = !text; m.textContent = text || ""; m.className = ok ? "ok" : "bad";
+}
+async function lookupTag(raw) {
+  const tag = tagFromScan(raw);
+  if (!tag) { scanMessage("That is not a triage tag number."); return; }
+  if (!isAgencyEmt) { scanMessage("Triage tags open only for EMS providers of this agency."); return; }
+  scanMessage("Looking up triage tag " + tag + "…", true);
+  let encs;
+  try {
+    const b = await client.request({
+      url: "Encounter?identifier=" + encodeURIComponent(TRIAGE_SYS + "|" + tag) + "&_count=10",
+      headers: { "Cache-Control": "no-cache" }
+    });
+    encs = (b.entry || []).map(e => e.resource).filter(e => e.resourceType === "Encounter");
+  } catch (e) { scanMessage("Could not look up triage tag " + tag + ": " + e.message); return; }
+  if (!encs.length) { scanMessage("No record found for triage tag " + tag + "."); return; }
+  const mine = encs.find(enc => /^F2F-\d{2}-EMS$/.test(tagOf(enc).value || "") &&
+    (enc.participant || []).some(pt => refIs(pt.individual, "Practitioner", me.id)));
+  if (!mine) { scanMessage("Triage tag " + tag + " is not one of your calls."); return; }
+  const caseTag = tagOf(mine).value.replace(/-EMS$/, "");
+  const row = patientRows.find(r => r.tag === caseTag);
+  scanMessage("Triage tag " + tag + ": opened.", true);
+  if (row) { if (row.button.hidden) setHospital(null); openRow(row); }
+  else { const p = await readRef("Patient", mine.subject); if (p) showCase(p, caseTag); }
+  $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// In-app scanner: the phone camera inside the signed-in dashboard (jsQR reads the frames).
+let scanStream = null, scanTimer = null;
+function closeScanner() {
+  if (scanTimer) cancelAnimationFrame(scanTimer);
+  scanTimer = null;
+  if (scanStream) scanStream.getTracks().forEach(t => t.stop());
+  scanStream = null;
+  $("scanner").hidden = true;
+}
+async function openScanner() {
+  $("scanner").hidden = false;
+  $("scaninput").value = "";
+  $("scanhint").textContent = "Point the camera at the QR code on the triage tag.";
+  if (!navigator.mediaDevices || !window.jsQR) { $("scanhint").textContent = "Camera scanning is not available here: type the tag number."; return; }
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  } catch (e) { $("scanhint").textContent = "No camera access: type the tag number."; return; }
+  const v = $("scanvideo"), c = $("scancanvas"), ctx = c.getContext("2d", { willReadFrequently: true });
+  v.srcObject = scanStream; await v.play().catch(() => {});
+  const tick = () => {
+    if (!scanStream) return;
+    if (v.readyState >= 2 && v.videoWidth) {
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      ctx.drawImage(v, 0, 0);
+      const r = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+      if (r && r.data) { closeScanner(); lookupTag(r.data); return; }
+    }
+    scanTimer = requestAnimationFrame(tick);
+  };
+  tick();
+}
+$("scanbtn").addEventListener("click", openScanner);
+$("scanclose").addEventListener("click", closeScanner);
+$("scango").addEventListener("click", () => { const t = $("scaninput").value; closeScanner(); lookupTag(t); });
+$("scaninput").addEventListener("keydown", e => { if (e.key === "Enter") $("scango").click(); });
 
 function openRow(row) {
   if (!row) return;
@@ -540,9 +651,10 @@ async function showCase(p, tag) {
         </table>
       </div>`;
     if (tagId && window.qrcode) {
-      // The QR holds the plain tag ID, so a phone shows the tag instead of opening a link.
+      // The QR holds this app's sign-in address with only the triage tag number: no name, no health
+      // information. Scanned, it opens the sign-in; after sign-in the tag opens the case (crew only).
       // The library's margin is in pixels: 4 cells of white all round is the quiet zone scanners need.
-      const q = qrcode(0, "M"); q.addData(tagId); q.make();
+      const q = qrcode(0, "M"); q.addData(scanLink(tagId)); q.make();
       document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 6, margin: 24, scalable: true });
     }
   } catch (e) {
