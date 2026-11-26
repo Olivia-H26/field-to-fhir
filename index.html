@@ -74,7 +74,8 @@
   .banner small { display: block; opacity: .8; margin-top: .2rem; }
   .restricted { margin-top: .6rem; padding: .6rem .7rem; border: 1px dashed #b91c1c; border-radius: 8px; background: #fff7f7; font-size: .85rem; color: #7f1d1d; }
   .tagbox { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; }
-  .tagbox .qr svg { width: 110px; height: 110px; display: block; }
+  .tagbox .qr { background: #fff; border-radius: 6px; flex: none; }
+  .tagbox .qr svg { width: 150px; height: 150px; display: block; }
   .alias { display: inline-block; font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; background: #fef3c7; color: #92400e; margin-left: .4rem; vertical-align: middle; }
   table { width: 100%; border-collapse: collapse; font-size: .9rem; margin-top: .5rem; }
   th, td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid #e5e7eb; }
@@ -496,7 +497,7 @@ async function showCase(p, tag) {
           <b>Arrived unidentified.</b> Triage tag <b>${esc(tagId)}</b> was placed at the scene.<br>
           ${tagOk ? "The EMS call and the hospital visit both carry this tag, so they match without a name." : "The tag is missing from the EMS call or the hospital visit."}<br>
           ${identified ? "Identified at the hospital as <b>" + esc(nameOf(identified)) + "</b> (linked record " + profileTag(identified) + ")." : "Not yet identified."}
-          <div class="muted">The QR holds only the triage tag identifier (the tag ID and its identifier system): no name and no health information.</div></div></div>` : ""}
+          <div class="muted">The QR holds only the triage tag ID: no name and no health information.</div></div></div>` : ""}
       </div>
       <div class="banner ${linked ? "ok" : "bad"}">${linked
         ? "The hospital visit is linked to this EMS impression: the EMS impression prompted the visit."
@@ -539,8 +540,10 @@ async function showCase(p, tag) {
         </table>
       </div>`;
     if (tagId && window.qrcode) {
-      const q = qrcode(0, "M"); q.addData(TRIAGE_SYS + "|" + tagId); q.make();
-      document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 3, margin: 2, scalable: true });
+      // The QR holds the plain tag ID, so a phone shows the tag instead of opening a link.
+      // The library's margin is in pixels: 4 cells of white all round is the quiet zone scanners need.
+      const q = qrcode(0, "M"); q.addData(tagId); q.make();
+      document.getElementById("qr").innerHTML = q.createSvgTag({ cellSize: 6, margin: 24, scalable: true });
     }
   } catch (e) {
     $("detail").innerHTML = '<div class="panel"><p class="muted">Could not load this case: ' + esc(e.message) + '</p></div>';

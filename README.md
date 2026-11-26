@@ -60,7 +60,7 @@ All data is synthetic: fictional people and organizations. Never put real patien
 **Confidentiality**
 
 - Diagnoses the hospital labeled restricted (HL7 confidentiality code R) are never requested. The dashboard asks the server only how many exist, then shows a notice.
-- The triage tag QR code holds only the tag identifier, with no name and no health information.
+- The triage tag QR code holds only the tag ID, with no name and no health information.
 
 **Security**
 
@@ -72,6 +72,6 @@ All data is synthetic: fictional people and organizations. Never put real patien
 
 When a patient is unresponsive or has no ID, the record uses a temporary alias name (FHIR `name.use = temp`) instead of "John Doe," and gender is recorded as unknown rather than assumed.
 
-The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code that holds only the triage tag identifier (the tag ID and its identifier system), with no name and no health information.
+The triage tag ID from the scene is stored on both the EMS call and the hospital visit, so the outcome matches without a name. The dashboard shows the tag as a QR code that holds only the triage tag ID (for example TAG-0107), with no name and no health information.
 
 Once the hospital identifies the patient, the alias record points to the identified record with a FHIR `Patient.link` of type `replaced-by`, which in FHIR means the alias record must no longer be used and the identified record is used in its place. The dashboard follows that link and shows the identified name.
