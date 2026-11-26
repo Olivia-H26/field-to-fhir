@@ -23,7 +23,7 @@
 </head>
 <body>
 <h1>Load demo data</h1>
-<p class="muted">Admin door. Loads the synthetic EMS cases into the SMART sandbox, then checks every record and link.
+<p class="muted">Admin door, for Dr. Albertine Orn, EMS Organization Medical Director, only. Loads the synthetic EMS cases into the SMART sandbox, then checks every record and link.
 The sandbox resets every night, so run this before each demo. Running it twice does not create duplicates.</p>
 <p class="muted">Validation gate: before anything is created, every record is sent to the official HL7 FHIR Validator
 (FHIR 4.0.1 + US Core 6.1.0). If the validator reports any error, or cannot be reached, nothing is loaded.
@@ -60,6 +60,15 @@ const ID_SYS = "https://olivia-h26.github.io/field-to-fhir/identifiers/case";
 const TYPES = ["Organization", "Practitioner", "PractitionerRole", "Patient", "Encounter", "Condition", "Observation", "Procedure"];
 const SCOPES = ["openid", "fhirUser"].concat(TYPES.map(t => "user/" + t + ".crs")).join(" ");
 
+// Only the EMS Organization Medical Director may load data. She is a built-in sandbox practitioner,
+// so she is there even after the nightly reset. EMTs who sign in here are turned away.
+// Note: this check runs in the browser. In a real system the authorization server would enforce it.
+const ADMIN_NPI = "93370";
+const ADMIN_LABEL = "Dr. Albertine Orn, EMS Organization Medical Director";
+const isAdmin = u => !!u && u.resourceType === "Practitioner" &&
+  (u.identifier || []).some(i => i.system === "http://hl7.org/fhir/sid/us-npi" && i.value === ADMIN_NPI);
+let adminOK = false;
+
 const $ = id => document.getElementById(id);
 const logLine = msg => { $("log").textContent += msg + "\n"; $("log").scrollTop = 1e9; };
 const results = [];
@@ -90,13 +99,26 @@ const params = new URLSearchParams(window.location.search);
 if (params.has("code") || params.has("state")) {
   FHIR.oauth2.ready().then(async c => {
     client = c;
-    let name = "signed in";
+    let name = "an unknown user", u = null;
     try {
-      const u = await c.user.read();
+      u = await c.user.read();
       const n = (u.name && u.name[0]) || {};
       name = [(n.given || []).join(" "), n.family].filter(Boolean).join(" ") || u.id;
-    } catch (e) { /* identity is optional for loading */ }
-    $("who").textContent = "Signed in as " + name + ". Granted permissions: " + (c.state.tokenResponse.scope || "not reported");
+    } catch (e) { /* identity is required: without it the admin check fails closed */ }
+    adminOK = isAdmin(u);
+    if (!adminOK) {
+      $("who").innerHTML = "";
+      $("who").append("Signed in as " + name + ". ");
+      const b = document.createElement("strong");
+      b.className = "bad";
+      b.textContent = "Only " + ADMIN_LABEL + ", can load demo data.";
+      $("who").append(b, " Click Sign in (admin) again and choose Dr. Albertine Orn from the Practitioner list.");
+      sessionStorage.clear();
+      $("load").disabled = true;
+      $("signin").disabled = false;
+      return;
+    }
+    $("who").textContent = "Signed in as " + name + " (admin). Granted permissions: " + (c.state.tokenResponse.scope || "not reported");
     $("load").disabled = false;
     $("signin").disabled = true;
   }).catch(e => { $("who").textContent = "Sign-in failed: " + e.message; });
@@ -173,6 +195,7 @@ async function validateBundle(text) {
 }
 
 $("load").addEventListener("click", async () => {
+  if (!adminOK) { $("load").disabled = true; return; }
   $("load").disabled = true;
   results.length = 0;
   $("results").innerHTML = "<li class='muted'>Waiting for validation...</li>";
