@@ -1355,6 +1355,23 @@
             "display": "EMS field impression: Suspected myocardial infarction (STEMI pattern on 12-lead ECG)"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:0cf76cf4-c24c-53ba-b1fd-37c94148965b"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -3287,6 +3304,23 @@
             "display": "EMS field impression: Suspected lower respiratory infection"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:a37863d6-1178-5080-9093-5115cf13f491"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -4963,6 +4997,23 @@
           {
             "reference": "urn:uuid:8bd7cf9d-165d-51a3-8652-6cef4ab6ab30",
             "display": "EMS field impression: Suspected acute stroke"
+          }
+        ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:40447d72-3a6c-5c7c-8761-52a0a525f49b"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
           }
         ],
         "hospitalization": {
@@ -7080,6 +7131,23 @@
             "display": "EMS field impression: Suspected hip fracture"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:1c230bc0-76be-53b2-8f7e-f9a096988e78"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -9130,6 +9198,23 @@
             "display": "EMS field impression: Symptomatic hypoglycemia"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:cba8bacc-cb36-5ac4-bdd0-f937a2f85292"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -10798,6 +10883,23 @@
             "display": "EMS field impression: Suspected appendicitis"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:f4bdd750-2fc2-5dbb-affb-750283490bb5"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -12288,6 +12390,23 @@
             "display": "EMS field impression: Acute asthma exacerbation"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:43cf8fc2-5f65-5a06-af73-8595b6755b80"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -13644,6 +13763,23 @@
           {
             "reference": "urn:uuid:52129499-f831-5e6f-a7bd-7174a39453ce",
             "display": "EMS field impression: Suspected concussion / mild traumatic brain injury"
+          }
+        ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:30ee5918-0a35-5438-ae3e-e47b8d176d3d"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
           }
         ],
         "hospitalization": {
@@ -15915,6 +16051,23 @@
             "display": "EMS field impression: Suspected sepsis"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:a1141f97-b43f-5c91-8bac-348884387c85"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -17983,6 +18136,23 @@
             "display": "EMS field impression: Suspected acute stroke"
           }
         ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:732b72b9-da17-57d3-95a5-1b6232e04e86"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
+          }
+        ],
         "hospitalization": {
           "dischargeDisposition": {
             "coding": [
@@ -19736,6 +19906,23 @@
           {
             "reference": "urn:uuid:9cd191b6-9141-5db5-8188-7efcdd1e0e3c",
             "display": "EMS field impression: Head injury, unresponsive"
+          }
+        ],
+        "diagnosis": [
+          {
+            "condition": {
+              "reference": "urn:uuid:74054494-33f9-5803-8fda-12e0162ae410"
+            },
+            "use": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                  "code": "DD",
+                  "display": "Discharge diagnosis"
+                }
+              ]
+            },
+            "rank": 1
           }
         ],
         "hospitalization": {

@@ -2,7 +2,7 @@
 
 **Field Impression → Hospital Discharge Disposition**
 
-Field to FHIR shows EMS providers what happened to the patients they transported. After signing in through SMART on FHIR, a provider sees each of their own calls: the EMS field impression, the crew and the vital signs on scene, side by side with the hospital's diagnosis, vital signs on arrival and discharge disposition. The app also compares the field impression with the hospital's diagnosis.
+Field to FHIR shows EMS providers what happened to the patients they transported. It compares the field impressions with the hospital discharge diagnoses.
 
 - **App:** https://olivia-h26.github.io/field-to-fhir/launch.html
 
@@ -14,7 +14,7 @@ Field to FHIR shows EMS providers what happened to the patients they transported
 
 ## Running the demo
 
-1. Open `admin-load.html` and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates only the records that are missing.
+1. Open `admin-load.html` (https://olivia-h26.github.io/field-to-fhir/admin-load.html) and sign in. The page checks the synthetic data with the HL7 FHIR Validator, then creates only the records that are missing.
 2. Open `launch.html` and select **Sign in**.
 
 ## Files

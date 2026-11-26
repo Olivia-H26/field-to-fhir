@@ -89,7 +89,6 @@
   .hosps .kicker { color: #1e40af; }
   footer { text-align: center; padding: 1rem; font-size: .78rem; color: #6b7280; }
   footer a { color: #1d4ed8; }
-  /* Standards details (codes, profiles, scopes) stay in the page and show when the user turns them on. */
   body:not(.show-std) .std, body:not(.show-std) .codeinfo, body:not(.show-std) #scopes { display: none; }
 </style>
 </head>
@@ -102,7 +101,7 @@
       <div class="tag">Field Impression &rarr; Hospital Discharge Disposition</div>
     </div>
   </div>
-  <div class="right"><span class="who" id="who">Signing in…</span> <button id="stdtoggle" type="button" aria-pressed="false">Show standards</button> <button id="signout" type="button">Sign out</button></div>
+  <div class="right"><span class="who" id="who">Signing in…</span> <button id="signout" type="button">Sign out</button></div>
 </header>
 
 <div class="wrap">
@@ -127,7 +126,6 @@
 <footer>
   Fictional test data · FHIR 4.0.1 · US Core 6.1.0 · SMART App Launch 2.2.0
   <br><span id="scopes"></span>
-  <br><a href="admin-load.html" title="Load the demo data">Admin: Dr. Albertine Orn, EMS Organization Medical Director</a>
 </footer>
 
 <script>
@@ -154,11 +152,6 @@ if (!qs.has("code") && !qs.has("state") && !sessionStorage.getItem("SMART_KEY"))
   location.replace(new URL("launch.html", location.href).href);
 }
 
-$("stdtoggle").addEventListener("click", () => {
-  const on = document.body.classList.toggle("show-std");
-  $("stdtoggle").textContent = on ? "Hide standards" : "Show standards";
-  $("stdtoggle").setAttribute("aria-pressed", String(on));
-});
 $("signout").addEventListener("click", () => {
   sessionStorage.clear();
   location.replace(new URL("launch.html", location.href).href);
@@ -205,7 +198,6 @@ const HEADINGS = {
 };
 const tagOf = r => ((r && r.identifier) || []).find(i => i.system === ID_SYS) || {};
 const heading = o => HEADINGS[tagOf(o).value] || clean(o && o.name);
-// The easter-egg heading shows with the standards details; the organization's real name is the visible title.
 const eggTag = o => HEADINGS[tagOf(o).value] ? `<span class="std">${esc(HEADINGS[tagOf(o).value])}</span>` : "";
 // Loop-logo bullet: the app's loop ring with initials inside.
 const loopAvatar = (letters, color) => `<svg class="avatar" viewBox="0 0 40 40" aria-hidden="true">
@@ -272,7 +264,7 @@ FHIR.oauth2.ready().then(async c => {
 async function loadAgency() {
   try {
     const [agency, ...hospitals] = await Promise.all([byTag("Organization", AGENCY_TAG), ...HOSPITAL_TAGS.map(t => byTag("Organization", t))]);
-    if (!agency) { $("agency").children[1].innerHTML = '<p class="muted">Agency not found: load the demo data on the admin page.</p>'; return; }
+    if (!agency) { $("agency").children[1].innerHTML = '<p class="muted">Agency not found.</p>'; return; }
     cache.set("Organization/" + agency.id, Promise.resolve(agency));
     hospitals.filter(Boolean).forEach(h => cache.set("Organization/" + h.id, Promise.resolve(h)));
     const type = code0((agency.type || [])[0]);
@@ -336,7 +328,7 @@ async function loadList() {
   const stat = document.getElementById("stat-pts");
   if (stat) stat.textContent = found.length;
   if (!found.length) {
-    $("list").innerHTML = '<p class="muted">No calls found for you. Load the demo data on the <a href="admin-load.html">admin page</a>, then reload this page.</p>';
+    $("list").innerHTML = '<p class="muted">No calls found for you.</p>';
     applyHospitalScope();
     return;
   }
@@ -524,7 +516,7 @@ async function showCase(p, tag) {
           ${orgHtml(agency, emsEnc && emsEnc.serviceProvider && emsEnc.serviceProvider.display)}
         </div>
         <div class="panel hosp">
-          <h3>Hospital diagnosis</h3>
+          <h3>Hospital discharge diagnosis</h3>
           <div class="dx">${esc(hospDx ? ccText(hospDx.code) : "Not found")}</div>
           ${hospDx ? `<span class="pill conf">${esc(ver(hospDx))}</span><span class="pill codeinfo">SNOMED ${esc(code0(hospDx.code).code)}</span><div>${profileTag(hospDx)}${profileTag(hospEnc)}</div>` : ""}
           <dl>
