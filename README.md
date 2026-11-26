@@ -2,7 +2,7 @@
 
 **Field Impression → Hospital Discharge Disposition**
 
-Field to FHIR is a provider-facing SMART on FHIR app. An EMS provider signs in and sees what happened at the hospital to patients from their own calls: the field impression, the hospital diagnosis, and the discharge disposition.
+Field to FHIR shows EMS providers what happened to the patients they transported. After signing in through SMART on FHIR, a provider sees each of their own calls: the EMS field impression, the crew and the vital signs on scene, side by side with the hospital's diagnosis, vital signs on arrival and discharge disposition. The app also compares the field impression with the hospital's diagnosis.
 
 - **App:** https://olivia-h26.github.io/field-to-fhir/launch.html
 
